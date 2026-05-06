@@ -51,6 +51,4 @@ data disimpan di localStorage browser lo sendiri. setiap orang yang buka web ini
 
 ---
 
-**dibikin untuk bang aji by claude + bestie** 🫡
-
-## 📁 Struktur File
+**dibikin untuk bang aji by claude + bestie** 
