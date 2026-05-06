@@ -393,7 +393,7 @@ body {
 }
 
 .today-shopping-list {
-    max-height: 220px;
+    max-height: 250px;
     overflow-y: auto;
 }
 
