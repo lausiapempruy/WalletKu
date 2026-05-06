@@ -19,24 +19,6 @@
 
 ---
 
-## 🚀 Cara Pake
-
-### Hosting di GitHub Pages
-
-1. Buat repository baru di GitHub
-2. Upload 3 file: `index.html`, `style.css`, `script.js`
-3. Masuk ke **Settings → Pages**
-4. Pilih branch `main` → klik **Save**
-5. Tunggu 1-2 menit, web live di `https://username.github.io/nama-repo/`
-
-### Pake Lokal (Offline)
-
-- Download atau copy 3 file ke satu folder
-- Double klik `index.html`
-- Selesai, web jalan di browser lo
-
----
-
 ## 🔧 Teknologi
 
 - HTML5 + CSS3 (native, ga pake framework)
