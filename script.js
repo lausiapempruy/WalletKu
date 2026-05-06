@@ -19,6 +19,8 @@ function loadData() {
     } else {
         transactions = [];
     }
+    
+    console.log('data loaded - wallets:', wallets.length, 'transactions:', transactions.length);
 }
 
 function saveWallets() {
@@ -133,6 +135,7 @@ function renderWalletsManager() {
         btn.addEventListener('click', () => {
             const id = btn.dataset.id;
             const wallet = wallets.find(w => w.id === id);
+            if (!wallet) return;
             const newName = prompt('Edit nama tabungan:', wallet.name);
             if (newName && newName.trim()) {
                 wallet.name = newName.trim();
@@ -229,6 +232,8 @@ function loadWalletSelects() {
 }
 
 function addTransaction(walletId, type, amount, sourceOrPurpose, note) {
+    console.log('addTransaction called:', {walletId, type, amount, sourceOrPurpose, note});
+    
     const wallet = wallets.find(w => w.id === walletId);
     if (!wallet) {
         alert('tabungan ga ketemu, bang');
@@ -240,12 +245,14 @@ function addTransaction(walletId, type, amount, sourceOrPurpose, note) {
         return false;
     }
     
+    // update saldo wallet
     if (type === 'income') {
         wallet.balance += amount;
     } else {
         wallet.balance -= amount;
     }
     
+    // buat transaksi baru
     const transaction = {
         id: Date.now() + Math.random(),
         walletId: walletId,
@@ -264,10 +271,18 @@ function addTransaction(walletId, type, amount, sourceOrPurpose, note) {
     }
     
     transactions.push(transaction);
+    
+    // save ke localStorage
     saveWallets();
     saveTransactions();
+    
+    console.log('transaction saved, total transactions:', transactions.length);
+    console.log('wallet new balance:', wallet.name, wallet.balance);
+    
+    // update semua tampilan
     updateAllSaldoDisplay();
     loadWalletSelects();
+    
     return true;
 }
 
@@ -351,6 +366,7 @@ async function exportToImage() {
         
         alert('foto 1440p udah ke-download, bang aji! cek folder download lo.');
     } catch (err) {
+        console.error('export error:', err);
         alert('gagal bikin foto, coba lagi ya');
     } finally {
         document.body.removeChild(tempDiv);
@@ -395,10 +411,12 @@ function setupEventListeners() {
                 sourceOrPurpose = document.getElementById('expensePurpose').value;
             }
             
-            if (addTransaction(walletId, type, amount, sourceOrPurpose, note)) {
+            const success = addTransaction(walletId, type, amount, sourceOrPurpose, note);
+            if (success) {
                 document.getElementById('transAmount').value = '';
                 document.getElementById('transNote').value = '';
                 alert('laporan tersimpan bang aji!');
+                // pindah ke dashboard biar liat perubahan
                 document.querySelector('[data-page="dashboard"]').click();
             }
         });
@@ -504,6 +522,7 @@ function init() {
     updateAllSaldoDisplay();
     loadWalletSelects();
     setupEventListeners();
+    console.log('app initialized');
 }
 
 init();
