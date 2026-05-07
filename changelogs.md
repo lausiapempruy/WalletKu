@@ -1,6 +1,6 @@
 # WalletKu Changelogs
 
-## v2.1.0 — 2025-05-06
+## v2.1.0 — 2026-05-06
 ### ✨ New Features
 - Login system with username registration — no Firebase, pure localStorage
 - Username stored separately from encrypted data, PIN still the encryption key
@@ -33,7 +33,7 @@
 
 ---
 
-## v2.0.0 — 2025-05-05
+## v2.0.0 — 2026-05-05
 ### ✨ New Features
 - Full PIN-based encryption (AES-GCM + PBKDF2)
 - Multi-wallet system (unlimited, custom icon + color)
@@ -59,7 +59,7 @@
 
 ---
 
-## v1.0.0 — 2025-05-01
+## v1.0.0 — 2026-05-01
 ### 🎉 Initial Release
 - Basic wallet tracker (single wallet)
 - Income and expense logging
