@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WalletKu Recap</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --gold: #c9a84c; --gold2: #e8c96a; --green: #2dd98f; --red: #f25c5c;
+      --blue: #5b8dee; --purple: #a78bfa; --pink: #f472b6;
+      --bg: #060a12; --text: #eaecf4; --text2: #8b92a8; --text3: #4a5270;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); }
+
+    /* GATE SCREEN */
+    #gateScreen {
+      position: fixed; inset: 0; z-index: 10;
+      display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(ellipse 80% 60% at 50% 20%, rgba(201,168,76,0.08) 0%, transparent 70%);
+    }
+    .gate-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      backdrop-filter: blur(32px);
+      padding: 52px 48px; max-width: 480px; width: 92vw;
+      text-align: center;
+      animation: fadeUp 0.6s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .gate-logo { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--gold); margin-bottom: 24px; letter-spacing: -0.02em; }
+    .gate-logo span { filter: drop-shadow(0 0 10px rgba(201,168,76,0.5)); }
+    .gate-title { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 12px; }
+    .gate-sub { color: var(--text2); font-size: 0.92rem; line-height: 1.6; margin-bottom: 32px; }
+    .gate-status { margin-bottom: 28px; min-height: 60px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .gate-progress { width: 100%; height: 4px; background: rgba(255,255,255,0.07); border-radius: 99px; overflow: hidden; }
+    .gate-progress-bar { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold2)); border-radius: 99px; transition: width 0.3s ease; width: 0%; }
+    .gate-progress-text { font-size: 0.8rem; color: var(--text3); }
+    .gate-tx-count { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--gold); }
+    .gate-locked { background: rgba(242,92,92,0.1); border: 1px solid rgba(242,92,92,0.2); border-radius: 12px; padding: 16px; font-size: 0.85rem; color: #f25c5c; line-height: 1.6; }
+    .gate-watched { background: rgba(45,217,143,0.1); border: 1px solid rgba(45,217,143,0.2); border-radius: 12px; padding: 16px; font-size: 0.85rem; color: var(--green); line-height: 1.6; }
+    .btn-recap-start { display: inline-flex; align-items: center; gap: 10px; padding: 14px 32px; background: linear-gradient(135deg, var(--gold), var(--gold2)); color: #07090f; font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 800; border: none; border-radius: 12px; cursor: pointer; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); letter-spacing: -0.01em; }
+    .btn-recap-start:hover { transform: scale(1.05) translateY(-2px); box-shadow: 0 12px 32px rgba(201,168,76,0.4); }
+    .btn-recap-check { display: inline-flex; align-items: center; gap: 10px; padding: 13px 28px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.92rem; font-weight: 500; border-radius: 12px; cursor: pointer; transition: all 0.25s ease; }
+    .btn-recap-check:hover { background: rgba(255,255,255,0.1); }
+    .btn-recap-check:disabled { opacity: 0.4; pointer-events: none; }
+    .gate-back { margin-top: 20px; font-size: 0.82rem; color: var(--text3); }
+    .gate-back a { color: var(--gold); text-decoration: none; cursor: pointer; }
+    .gate-back a:hover { color: var(--gold2); }
+
+    /* RECAP STAGE */
+    #recapStage { position: fixed; inset: 0; z-index: 5; display: none; }
+
+    /* CANVAS BG */
+    #recapCanvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+    /* SLIDE */
+    .slide {
+      position: absolute; inset: 0; z-index: 2;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 32px 24px; text-align: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.7s ease;
+    }
+    .slide.active { opacity: 1; pointer-events: all; }
+
+    .slide-eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 16px; opacity: 0; transform: translateY(16px); transition: all 0.5s ease 0.2s; }
+    .slide.active .slide-eyebrow { opacity: 1; transform: translateY(0); }
+
+    .slide-headline { font-family: 'Syne', sans-serif; font-size: clamp(2.2rem, 6vw, 4.5rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1.05; margin-bottom: 20px; opacity: 0; transform: translateY(24px); transition: all 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.35s; }
+    .slide.active .slide-headline { opacity: 1; transform: translateY(0); }
+
+    .slide-sub { font-size: clamp(0.9rem, 2vw, 1.1rem); color: var(--text2); line-height: 1.6; max-width: 520px; opacity: 0; transform: translateY(16px); transition: all 0.5s ease 0.5s; }
+    .slide.active .slide-sub { opacity: 1; transform: translateY(0); }
+
+    .slide-number { font-family: 'Syne', sans-serif; font-size: clamp(4rem, 14vw, 9rem); font-weight: 800; letter-spacing: -0.05em; line-height: 1; margin-bottom: 8px; opacity: 0; transform: scale(0.7); transition: all 0.7s cubic-bezier(0.34,1.56,0.64,1) 0.3s; }
+    .slide.active .slide-number { opacity: 1; transform: scale(1); }
+
+    .slide-emoji { font-size: clamp(3rem, 10vw, 6rem); margin-bottom: 16px; opacity: 0; transform: scale(0.5) rotate(-10deg); transition: all 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.2s; }
+    .slide.active .slide-emoji { opacity: 1; transform: scale(1) rotate(0deg); }
+
+    .slide-chip { display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; border-radius: 99px; font-size: 0.85rem; font-weight: 600; margin-top: 12px; opacity: 0; transition: opacity 0.4s ease 0.6s; }
+    .slide.active .slide-chip { opacity: 1; }
+
+    .slide-bg-gold    { background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(201,168,76,0.12) 0%, transparent 70%); }
+    .slide-bg-green   { background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(45,217,143,0.12) 0%, transparent 70%); }
+    .slide-bg-red     { background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(242,92,92,0.12) 0%, transparent 70%); }
+    .slide-bg-blue    { background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(91,141,238,0.12) 0%, transparent 70%); }
+    .slide-bg-purple  { background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(167,139,250,0.12) 0%, transparent 70%); }
+
+    /* RECAP UI CHROME */
+    #recapChrome {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+      padding: 16px 24px; display: flex; align-items: center; gap: 16px;
+    }
+    .recap-logo { font-family: 'Syne', sans-serif; font-size: 0.9rem; font-weight: 800; color: rgba(255,255,255,0.3); letter-spacing: -0.01em; }
+    .recap-progress-wrap { flex: 1; display: flex; gap: 4px; }
+    .recap-prog-seg { flex: 1; height: 3px; background: rgba(255,255,255,0.15); border-radius: 99px; overflow: hidden; }
+    .recap-prog-seg-fill { height: 100%; background: white; border-radius: 99px; width: 0%; transition: width 0.1s linear; }
+    .recap-prog-seg.done .recap-prog-seg-fill { width: 100%; }
+    .recap-skip-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 99px; padding: 6px 14px; color: rgba(255,255,255,0.6); font-size: 0.78rem; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
+    .recap-skip-btn:hover { background: rgba(255,255,255,0.18); color: white; }
+    .recap-mute-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 99px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.6); font-size: 0.9rem; cursor: pointer; transition: all 0.2s; }
+    .recap-mute-btn:hover { background: rgba(255,255,255,0.18); color: white; }
+
+    /* SHARE CARD SCREEN */
+    #shareScreen {
+      position: fixed; inset: 0; z-index: 30;
+      background: rgba(6,10,18,0.95); backdrop-filter: blur(20px);
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .share-title { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--gold); margin-bottom: 6px; letter-spacing: -0.02em; }
+    .share-sub { color: var(--text2); font-size: 0.88rem; margin-bottom: 28px; }
+    .share-card {
+      background: linear-gradient(135deg, #0d1220 0%, #080c14 100%);
+      border: 1px solid rgba(255,255,255,0.12); border-radius: 20px;
+      padding: 32px; max-width: 400px; width: 100%;
+      position: relative; overflow: hidden;
+      box-shadow: 0 32px 64px rgba(0,0,0,0.6);
+    }
+    .share-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--gold), var(--purple), var(--blue)); }
+    .share-card-logo { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 800; color: var(--gold); margin-bottom: 20px; display: flex; align-items: center; gap: 6px; }
+    .share-card-total-label { font-size: 0.7rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+    .share-card-total { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; color: var(--gold); letter-spacing: -0.03em; margin-bottom: 20px; }
+    .share-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .share-stat { background: rgba(255,255,255,0.04); border-radius: 10px; padding: 12px; }
+    .share-stat-label { font-size: 0.68rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 4px; }
+    .share-stat-val { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700; }
+    .share-card-footer { font-size: 0.7rem; color: var(--text3); text-align: center; margin-top: 8px; }
+    .share-btns { display: flex; gap: 10px; margin-top: 24px; flex-wrap: wrap; justify-content: center; }
+    .btn-share { padding: 11px 22px; border-radius: 10px; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 600; transition: all 0.25s ease; }
+    .btn-share-primary { background: linear-gradient(135deg, var(--gold), var(--gold2)); color: #07090f; }
+    .btn-share-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(201,168,76,0.4); }
+    .btn-share-ghost { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); color: var(--text); }
+    .btn-share-ghost:hover { background: rgba(255,255,255,0.12); }
+
+    /* SUMMARY SLIDE */
+    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 480px; width: 100%; margin-top: 20px; }
+    .summary-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 16px; text-align: left; opacity: 0; transform: translateY(12px); transition: all 0.4s ease; }
+    .slide.active .summary-item { opacity: 1; transform: translateY(0); }
+    .summary-item:nth-child(1) { transition-delay: 0.3s; }
+    .summary-item:nth-child(2) { transition-delay: 0.4s; }
+    .summary-item:nth-child(3) { transition-delay: 0.5s; }
+    .summary-item:nth-child(4) { transition-delay: 0.6s; }
+    .summary-item:nth-child(5) { transition-delay: 0.7s; }
+    .summary-item:nth-child(6) { transition-delay: 0.8s; }
+    .summary-label { font-size: 0.68rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+    .summary-val { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700; }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(30px) scale(0.96); } to { opacity:1; transform:translateY(0) scale(1); } }
+    @keyframes confettiFall { to { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+  </style>
+</head>
+<body>
+
+<canvas id="recapCanvas"></canvas>
+
+<!-- GATE -->
+<div id="gateScreen">
+  <div class="gate-card">
+    <div class="gate-logo"><span>◈</span> WalletKu Recap</div>
+    <h1 class="gate-title" id="gateTitle">Lihat Perjalananmu</h1>
+    <p class="gate-sub" id="gateSub">Rangkuman seluruh aktivitas keuanganmu dalam satu tampilan sinematik.</p>
+    <div class="gate-status" id="gateStatus">
+      <button class="btn-recap-check" id="checkBtn">✦ Cek Semua Transaksi Saya Untuk Recap</button>
+    </div>
+    <div id="gateAction"></div>
+    <div class="gate-back"><a onclick="window.location.href='index.html'">← Kembali ke WalletKu</a></div>
+  </div>
+</div>
+
+<!-- RECAP CHROME (progress bar + controls) -->
+<div id="recapChrome" style="display:none">
+  <div class="recap-logo">◈ Recap</div>
+  <div class="recap-progress-wrap" id="recapProgressWrap"></div>
+  <button class="recap-mute-btn" id="muteBtn" title="Toggle sound">🔊</button>
+  <button class="recap-skip-btn" id="skipBtn">Skip →</button>
+</div>
+
+<!-- RECAP STAGE -->
+<div id="recapStage"></div>
+
+<!-- SHARE SCREEN -->
+<div id="shareScreen">
+  <div class="share-title">✦ Recap Selesai!</div>
+  <p class="share-sub">Bagikan recap keuanganmu</p>
+  <div class="share-card" id="shareCard">
+    <div class="share-card-logo">◈ WalletKu Recap</div>
+    <div class="share-card-total-label">Total Saldo</div>
+    <div class="share-card-total" id="scTotal">Rp 0</div>
+    <div class="share-stats" id="scStats"></div>
+    <div class="share-card-footer" id="scFooter">WalletKu v2.2 · Data Privat</div>
+  </div>
+  <div class="share-btns">
+    <button class="btn-share btn-share-primary" id="saveCardBtn">📸 Simpan sebagai Gambar</button>
+    <button class="btn-share btn-share-ghost" id="backBtn">← Kembali ke WalletKu</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ── CONSTANTS ──
+const LS_SALT      = 'wk_salt_v2';
+const LS_VERIFY    = 'wk_verify_v2';
+const LS_DATA      = 'wk_data_v2';
+const LS_RECAP     = 'wk_recap_v2';
+const VERIFY_PLAIN = 'WALLETKU_OK';
+const SLIDE_DURATION = 7000; // ms per slide
+
+// ── CRYPTO ──
+const enc = new TextEncoder(), dec = new TextDecoder();
+function bufToB64(b){ return btoa(String.fromCharCode(...new Uint8Array(b))); }
+function b64ToBuf(s){ return Uint8Array.from(atob(s), c=>c.charCodeAt(0)).buffer; }
+
+async function deriveKey(pin, salt){
+  const km = await crypto.subtle.importKey('raw', enc.encode(pin), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:200000,hash:'SHA-256'}, km, {name:'AES-GCM',length:256}, false, ['encrypt','decrypt']);
+}
+async function decrypt(key, cipher){
+  const [iv64, ct64] = cipher.split('.');
+  const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv: new Uint8Array(b64ToBuf(iv64))}, key, b64ToBuf(ct64));
+  return dec.decode(pt);
+}
+
+// ── LOAD STATE ──
+let appState = null;
+let cryptoKey = null;
+
+async function loadAppState(){
+  const raw = localStorage.getItem(LS_DATA);
+  if (!raw) return null;
+  // Need to unlock with PIN — redirect if not possible
+  const salt = localStorage.getItem(LS_SALT);
+  const verify = localStorage.getItem(LS_VERIFY);
+  if (!salt || !verify) return null;
+  // Try cached session pin — we don't store pin, but we check if we can piggyback
+  // Since recap.html is a separate page, we require user re-enters PIN here if needed
+  // For UX: store a temp session flag in sessionStorage during same tab session
+  const sessionKey = sessionStorage.getItem('wk_session_key');
+  if (!sessionKey) return null;
+  try {
+    const saltBuf = b64ToBuf(salt);
+    cryptoKey = await deriveKey(sessionKey, saltBuf);
+    const plain = await decrypt(cryptoKey, verify);
+    if (plain !== VERIFY_PLAIN) return null;
+    const json = await decrypt(cryptoKey, raw);
+    return JSON.parse(json);
+  } catch(e) { return null; }
+}
+
+// ── SOUND ENGINE ──
+let audioCtx = null;
+let soundMuted = false;
+
+function getACtx(){
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playNote(freq, type, dur, vol=0.12){
+  if (soundMuted) return;
+  try {
+    const ctx = getACtx();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    o.start(); o.stop(ctx.currentTime + dur);
+  } catch(e){}
+}
+
+function playChord(notes, type='sine', dur=0.3, delay=80){
+  notes.forEach((f,i) => setTimeout(() => playNote(f, type, dur), i*delay));
+}
+
+const RECAP_SOUNDS = {
+  intro()   { playChord([261,329,392,523], 'sine', 0.8, 120); },
+  slide1()  { playChord([392,494,587], 'sine', 0.4, 100); },
+  slide2()  { playChord([523,659,784], 'sine', 0.4, 100); },
+  slide3()  { playNote(440, 'triangle', 0.5, 0.15); setTimeout(()=>playNote(554,'triangle',0.5,0.12),150); },
+  slide4()  { playChord([587,740,880], 'sine', 0.35, 80); },
+  slide5()  { playNote(659, 'sine', 0.4, 0.15); setTimeout(()=>playNote(880,'sine',0.3,0.1),200); },
+  slide6()  { playChord([440,554,659,880], 'triangle', 0.5, 90); },
+  summary() { [523,587,659,784,880,1047].forEach((f,i)=>setTimeout(()=>playNote(f,'sine',0.4,0.14),i*90)); },
+  done()    { [523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>playNote(f,'sine',0.5,0.16),i*110)); },
+};
+
+// ── PARTICLES (ambient) ──
+function initParticles(){
+  const canvas = document.getElementById('recapCanvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, pts = [];
+  function resize(){ W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  for(let i=0;i<60;i++) pts.push({ x:Math.random()*window.innerWidth, y:Math.random()*window.innerHeight, r:Math.random()*1.2+0.3, dx:(Math.random()-.5)*.25, dy:(Math.random()-.5)*.25, c:['#c9a84c','#5b8dee','#a78bfa','#2dd98f'][Math.floor(Math.random()*4)], o:Math.random()*.4+.05 });
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{ p.x+=p.dx; p.y+=p.dy; if(p.x<0)p.x=W; if(p.x>W)p.x=0; if(p.y<0)p.y=H; if(p.y>H)p.y=0; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle=p.c; ctx.globalAlpha=p.o; ctx.fill(); });
+    ctx.globalAlpha=1; requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ── CONFETTI ──
+function launchConfetti(){
+  const colors = ['#c9a84c','#e8c96a','#2dd98f','#5b8dee','#a78bfa','#f472b6','#fb923c'];
+  for(let i=0;i<120;i++){
+    const el = document.createElement('div');
+    const size = Math.random()*8+4;
+    el.style.cssText = `position:fixed;top:-${size}px;left:${Math.random()*100}vw;width:${size}px;height:${size}px;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:${Math.random()>0.5?'50%':'2px'};z-index:100;opacity:1;animation:confettiFall ${Math.random()*2+1.5}s ease-in ${Math.random()*0.8}s forwards;transform:rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(), 4000);
+  }
+}
+
+// ── FORMATTING ──
+function fmtIDR(n){ return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(n); }
+function fmtDate(iso){ return new Date(iso).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}); }
+
+// ── STATS COMPUTATION ──
+function computeStats(state){
+  const txs = state.transactions || [];
+  const wallets = state.wallets || [];
+
+  const totalIn  = txs.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+  const totalOut = txs.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+  const totalBal = wallets.reduce((s,w)=>s+(w.balance||0),0);
+
+  // Richest wallet
+  const richest = wallets.sort((a,b)=>(b.balance||0)-(a.balance||0))[0];
+
+  // Biggest expense category
+  const catMap = {};
+  txs.filter(t=>t.type==='expense').forEach(t=>{ catMap[t.category]=(catMap[t.category]||0)+t.amount; });
+  const bigCat = Object.entries(catMap).sort((a,b)=>b[1]-a[1])[0];
+
+  // Biggest single transaction
+  const bigTx = txs.slice().sort((a,b)=>b.amount-a.amount)[0];
+
+  // Streak (consecutive days with transactions)
+  const days = [...new Set(txs.map(t=>t.date?.slice(0,10)))].sort();
+  let streak = 1, maxStreak = 1, cur = 1;
+  for(let i=1;i<days.length;i++){
+    const d1=new Date(days[i-1]), d2=new Date(days[i]);
+    const diff=(d2-d1)/(1000*60*60*24);
+    if(diff===1){ cur++; maxStreak=Math.max(maxStreak,cur); } else cur=1;
+  }
+  streak = days.length > 0 ? maxStreak : 0;
+
+  return { totalIn, totalOut, totalBal, richest, bigCat, bigTx, streak, txCount: txs.length, walletCount: wallets.length };
+}
+
+// ── RECAP ENGINE ──
+let slides = [], currentSlide = 0, slideTimer = null, slideStartTime = 0;
+let totalSlides = 0;
+
+function buildSlides(stats){
+  const s = stats;
+  return [
+    {
+      bg: 'slide-bg-gold',
+      content: `
+        <div class="slide-emoji">◈</div>
+        <div class="slide-eyebrow" style="color:var(--gold)">WalletKu Recap</div>
+        <div class="slide-headline">Perjalanan<br>Keuanganmu</div>
+        <div class="slide-sub">Ini adalah cerita tentang bagaimana kamu mengelola uangmu. Yuk kita lihat bersama.</div>
+      `,
+      sound: 'intro'
+    },
+    {
+      bg: 'slide-bg-blue',
+      content: `
+        <div class="slide-eyebrow" style="color:var(--blue)">Total Transaksi</div>
+        <div class="slide-number" style="color:var(--blue)">${s.txCount}</div>
+        <div class="slide-headline">transaksi<br>tercatat</div>
+        <div class="slide-sub">Kamu aktif memantau keuangan dengan ${s.txCount} catatan di ${s.walletCount} wallet.</div>
+        <span class="slide-chip" style="background:rgba(91,141,238,0.15);color:var(--blue);border:1px solid rgba(91,141,238,0.25)">📊 ${s.walletCount} Wallet Aktif</span>
+      `,
+      sound: 'slide1'
+    },
+    {
+      bg: 'slide-bg-green',
+      content: `
+        <div class="slide-eyebrow" style="color:var(--green)">Total Pemasukan</div>
+        <div class="slide-number" style="color:var(--green);font-size:clamp(1.8rem,5vw,3.5rem)">${fmtIDR(s.totalIn)}</div>
+        <div class="slide-headline">masuk ke<br>kantongmu</div>
+        <div class="slide-sub">Kerja keras kamu menghasilkan total ${fmtIDR(s.totalIn)} sepanjang waktu.</div>
+        <span class="slide-chip" style="background:var(--green-dim,rgba(45,217,143,0.12));color:var(--green);border:1px solid rgba(45,217,143,0.25)">💰 Pemasukan</span>
+      `,
+      sound: 'slide2'
+    },
+    {
+      bg: 'slide-bg-red',
+      content: `
+        <div class="slide-eyebrow" style="color:var(--red)">Total Pengeluaran</div>
+        <div class="slide-number" style="color:var(--red);font-size:clamp(1.8rem,5vw,3.5rem)">${fmtIDR(s.totalOut)}</div>
+        <div class="slide-headline">keluar dari<br>dompetmu</div>
+        <div class="slide-sub">${s.bigCat ? `Kategori terbesar: <b style="color:var(--red)">${s.bigCat[0]}</b> sebesar ${fmtIDR(s.bigCat[1])}.` : 'Kamu cukup hemat!'}</div>
+        <span class="slide-chip" style="background:rgba(242,92,92,0.1);color:var(--red);border:1px solid rgba(242,92,92,0.2)">🛒 ${s.bigCat?s.bigCat[0]:'—'}</span>
+      `,
+      sound: 'slide3'
+    },
+    {
+      bg: 'slide-bg-gold',
+      content: `
+        <div class="slide-eyebrow" style="color:var(--gold)">Transaksi Terbesar</div>
+        ${s.bigTx ? `
+          <div class="slide-number" style="color:var(--gold);font-size:clamp(1.6rem,4.5vw,3rem)">${fmtIDR(s.bigTx.amount)}</div>
+          <div class="slide-headline">${s.bigTx.note || s.bigTx.category}</div>
+          <div class="slide-sub">Transaksi single terbesar yang pernah kamu catat. ${s.bigTx.type === 'income' ? 'Pemasukan besar!' : 'Pengeluaran terbesar.'}</div>
+          <span class="slide-chip" style="background:var(--gold-dim,rgba(201,168,76,0.14));color:var(--gold);border:1px solid rgba(201,168,76,0.25)">${s.bigTx.type==='income'?'💸 Pemasukan':'💳 Pengeluaran'}</span>
+        ` : '<div class="slide-sub">Belum ada transaksi besar.</div>'}
+      `,
+      sound: 'slide4'
+    },
+    {
+      bg: 'slide-bg-purple',
+      content: `
+        <div class="slide-eyebrow" style="color:var(--purple)">Streak Aktif</div>
+        <div class="slide-number" style="color:var(--purple)">${s.streak}</div>
+        <div class="slide-headline">hari beruntun<br>aktif mencatat</div>
+        <div class="slide-sub">Konsistensi adalah kunci. Kamu aktif mencatat selama ${s.streak} hari berturut-turut!</div>
+        <span class="slide-chip" style="background:rgba(167,139,250,0.12);color:var(--purple);border:1px solid rgba(167,139,250,0.25)">🔥 Streak Terbaik</span>
+      `,
+      sound: 'slide5'
+    },
+    {
+      bg: 'slide-bg-gold',
+      content: `
+        <div class="slide-eyebrow" style="color:var(--gold)">Wallet Terkaya</div>
+        ${s.richest ? `
+          <div class="slide-emoji">${s.richest.icon || '💰'}</div>
+          <div class="slide-headline">${s.richest.name}</div>
+          <div class="slide-number" style="color:var(--gold);font-size:clamp(1.6rem,4.5vw,3rem)">${fmtIDR(s.richest.balance||0)}</div>
+          <div class="slide-sub">Wallet dengan saldo terbesar saat ini.</div>
+        ` : '<div class="slide-sub">Belum ada wallet.</div>'}
+      `,
+      sound: 'slide6'
+    },
+    {
+      bg: 'slide-bg-gold',
+      isSummary: true,
+      content: `
+        <div class="slide-eyebrow" style="color:var(--gold)">Ringkasan Lengkap</div>
+        <div class="slide-headline" style="font-size:clamp(1.8rem,5vw,3rem);margin-bottom:16px">Total Saldo Kamu</div>
+        <div style="font-family:'Syne',sans-serif;font-size:clamp(2rem,6vw,4rem);font-weight:800;color:var(--gold);letter-spacing:-0.04em;margin-bottom:20px;opacity:0;transform:scale(0.8);transition:all 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.4s" class="summary-total-num">${fmtIDR(s.totalBal)}</div>
+        <div class="summary-grid">
+          <div class="summary-item"><div class="summary-label">Pemasukan</div><div class="summary-val" style="color:var(--green)">${fmtIDR(s.totalIn)}</div></div>
+          <div class="summary-item"><div class="summary-label">Pengeluaran</div><div class="summary-val" style="color:var(--red)">${fmtIDR(s.totalOut)}</div></div>
+          <div class="summary-item"><div class="summary-label">Transaksi</div><div class="summary-val" style="color:var(--blue)">${s.txCount}x</div></div>
+          <div class="summary-item"><div class="summary-label">Streak</div><div class="summary-val" style="color:var(--purple)">${s.streak} hari</div></div>
+          <div class="summary-item"><div class="summary-label">Wallet Terkaya</div><div class="summary-val" style="color:var(--gold)">${s.richest?.name||'—'}</div></div>
+          <div class="summary-item"><div class="summary-label">Kategori Terbesar</div><div class="summary-val">${s.bigCat?s.bigCat[0]:'—'}</div></div>
+        </div>
+      `,
+      sound: 'summary'
+    }
+  ];
+}
+
+function renderProgressBar(n){
+  const wrap = document.getElementById('recapProgressWrap');
+  wrap.innerHTML = '';
+  for(let i=0;i<n;i++){
+    const seg = document.createElement('div');
+    seg.className = 'recap-prog-seg';
+    seg.id = `seg${i}`;
+    seg.innerHTML = '<div class="recap-prog-seg-fill" id="segfill'+i+'"></div>';
+    wrap.appendChild(seg);
+  }
+}
+
+function goToSlide(idx){
+  clearTimeout(slideTimer);
+  // Deactivate current
+  document.querySelectorAll('.slide').forEach(s=>s.classList.remove('active'));
+  // Mark previous as done
+  for(let i=0;i<idx;i++){
+    const seg=document.getElementById(`seg${i}`);
+    if(seg){ seg.classList.add('done'); const fill=document.getElementById(`segfill${i}`); if(fill)fill.style.width='100%'; }
+  }
+  // Reset current onwards
+  for(let i=idx;i<totalSlides;i++){
+    const seg=document.getElementById(`seg${i}`);
+    if(seg){ seg.classList.remove('done'); const fill=document.getElementById(`segfill${i}`); if(fill)fill.style.width='0%'; }
+  }
+
+  currentSlide = idx;
+  const slide = document.getElementById(`slide${idx}`);
+  if(!slide){ showShareScreen(); return; }
+
+  // Activate
+  setTimeout(()=>{ slide.classList.add('active'); }, 30);
+
+  // Activate summary total number separately
+  setTimeout(()=>{
+    const tot = slide.querySelector('.summary-total-num');
+    if(tot){ tot.style.opacity='1'; tot.style.transform='scale(1)'; }
+  }, 500);
+
+  // Play sound
+  if(slides[idx]?.sound && RECAP_SOUNDS[slides[idx].sound]) RECAP_SOUNDS[slides[idx].sound]();
+
+  // Confetti on summary
+  if(slides[idx]?.isSummary){ setTimeout(launchConfetti, 600); RECAP_SOUNDS.done(); }
+
+  // Progress fill animation
+  slideStartTime = Date.now();
+  animateSegment(idx);
+
+  // Auto advance
+  slideTimer = setTimeout(()=>{ goToSlide(idx+1); }, SLIDE_DURATION);
+}
+
+function animateSegment(idx){
+  const fill = document.getElementById(`segfill${idx}`);
+  if(!fill) return;
+  const elapsed = Date.now() - slideStartTime;
+  const pct = Math.min(100, (elapsed / SLIDE_DURATION) * 100);
+  fill.style.width = pct + '%';
+  if(pct < 100) requestAnimationFrame(()=>animateSegment(idx));
+}
+
+function startRecap(stats){
+  slides = buildSlides(stats);
+  totalSlides = slides.length;
+
+  const stage = document.getElementById('recapStage');
+  stage.innerHTML = '';
+  slides.forEach((s,i)=>{
+    const div = document.createElement('div');
+    div.className = `slide ${s.bg}`;
+    div.id = `slide${i}`;
+    div.innerHTML = s.content;
+    stage.appendChild(div);
+  });
+  stage.style.display = 'block';
+
+  document.getElementById('recapChrome').style.display = 'flex';
+  renderProgressBar(totalSlides);
+
+  document.getElementById('skipBtn').onclick = skipRecap;
+  document.getElementById('muteBtn').onclick = toggleMute;
+
+  goToSlide(0);
+}
+
+function skipRecap(){
+  clearTimeout(slideTimer);
+  // Find summary slide index
+  const summaryIdx = slides.findIndex(s=>s.isSummary);
+  if(summaryIdx >= 0 && currentSlide < summaryIdx){
+    goToSlide(summaryIdx);
+  } else {
+    showShareScreen();
+  }
+}
+
+function toggleMute(){
+  soundMuted = !soundMuted;
+  document.getElementById('muteBtn').textContent = soundMuted ? '🔇' : '🔊';
+}
+
+function showShareScreen(){
+  clearTimeout(slideTimer);
+  document.getElementById('recapChrome').style.display = 'none';
+  document.getElementById('recapStage').style.display = 'none';
+
+  if(!appState) { window.location.href='index.html'; return; }
+
+  const stats = computeStats(appState);
+  document.getElementById('scTotal').textContent = fmtIDR(stats.totalBal);
+  document.getElementById('scStats').innerHTML = `
+    <div class="share-stat"><div class="share-stat-label">Pemasukan</div><div class="share-stat-val" style="color:var(--green)">${fmtIDR(stats.totalIn)}</div></div>
+    <div class="share-stat"><div class="share-stat-label">Pengeluaran</div><div class="share-stat-val" style="color:var(--red)">${fmtIDR(stats.totalOut)}</div></div>
+    <div class="share-stat"><div class="share-stat-label">Transaksi</div><div class="share-stat-val" style="color:var(--blue)">${stats.txCount}x</div></div>
+    <div class="share-stat"><div class="share-stat-label">Streak</div><div class="share-stat-val" style="color:var(--purple)">${stats.streak} hari</div></div>
+    <div class="share-stat"><div class="share-stat-label">Wallet Terkaya</div><div class="share-stat-val" style="color:var(--gold)">${stats.richest?.name||'—'}</div></div>
+    <div class="share-stat"><div class="share-stat-label">Terbesar</div><div class="share-stat-val">${stats.bigCat?stats.bigCat[0]:'—'}</div></div>
+  `;
+  document.getElementById('scFooter').textContent = `WalletKu v2.2 · ${new Date().toLocaleDateString('id-ID')}`;
+
+  const ss = document.getElementById('shareScreen');
+  ss.style.display = 'flex';
+
+  RECAP_SOUNDS.done();
+  launchConfetti();
+
+  // Mark as watched
+  localStorage.setItem(LS_RECAP, JSON.stringify({ watched: true, watchedAt: Date.now() }));
+
+  document.getElementById('backBtn').onclick = () => window.location.href = 'index.html';
+  document.getElementById('saveCardBtn').onclick = saveShareCard;
+}
+
+async function saveShareCard(){
+  const card = document.getElementById('shareCard');
+  try {
+    const canvas = await html2canvas(card, { scale:3, backgroundColor:'#0d1220', logging:false });
+    const a = document.createElement('a');
+    a.download = `WalletKu_Recap_${new Date().toISOString().slice(0,10)}.png`;
+    a.href = canvas.toDataURL('image/png',1.0);
+    a.click();
+  } catch(e){ alert('Export gagal, coba screenshot manual.'); }
+}
+
+// ── GATE LOGIC ──
+async function initGate(){
+  initParticles();
+
+  // Load html2canvas dynamically for share card
+  if(!window.html2canvas){
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+    document.head.appendChild(s);
+  }
+
+  appState = await loadAppState();
+
+  const checkBtn = document.getElementById('checkBtn');
+  const gateAction = document.getElementById('gateAction');
+  const gateStatus = document.getElementById('gateStatus');
+
+  // Check cooldown
+  const recapData = JSON.parse(localStorage.getItem(LS_RECAP)||'{}');
+  const now = Date.now();
+  const SEVEN_DAYS = 7*24*60*60*1000;
+
+  if(recapData.watched && recapData.watchedAt){
+    const age = now - recapData.watchedAt;
+    if(age > SEVEN_DAYS){
+      // Expired — close
+      document.getElementById('gateTitle').textContent = 'Recap Ditutup';
+      document.getElementById('gateSub').textContent = 'Masa tayang recap 7 hari sudah habis. Recap berikutnya akan tersedia setelah cukup transaksi baru.';
+      gateStatus.innerHTML = '<div class="gate-locked">⏳ Recap ditutup. Kumpulkan 30 transaksi baru untuk membuka recap selanjutnya.</div>';
+      gateAction.innerHTML = '<div style="height:8px"></div>';
+      return;
+    } else {
+      // Still in 7-day window — can re-watch
+      const daysLeft = Math.ceil((SEVEN_DAYS - age)/(24*60*60*1000));
+      document.getElementById('gateTitle').textContent = 'Recap Kamu';
+      document.getElementById('gateSub').textContent = `Kamu sudah menonton recap ini. Masih bisa diputar ulang selama ${daysLeft} hari lagi.`;
+      gateStatus.innerHTML = `<div class="gate-watched">✅ Sudah ditonton · Sisa ${daysLeft} hari</div>`;
+      gateAction.innerHTML = `<button class="btn-recap-start" id="startBtn">▶ Putar Ulang Recap</button>`;
+      document.getElementById('startBtn').onclick = () => {
+        if(!appState){ alert('Tidak bisa load data. Kembali ke app dulu.'); return; }
+        document.getElementById('gateScreen').style.display = 'none';
+        startRecap(computeStats(appState));
+      };
+      return;
+    }
+  }
+
+  // No watch record — check transactions
+  if(!appState){
+    gateStatus.innerHTML = '<div class="gate-locked">🔐 Data tidak bisa dibaca. Buka WalletKu dulu dari browser yang sama lalu kembali ke halaman ini.</div>';
+    return;
+  }
+
+  const txCount = (appState.transactions||[]).length;
+  checkBtn.addEventListener('click', async () => {
+    checkBtn.disabled = true;
+    checkBtn.textContent = '⏳ Mengecek transaksi...';
+
+    // Simulate scanning with progress
+    let pct = 0;
+    gateStatus.innerHTML = `
+      <div class="gate-tx-count" id="txCountDisplay">Memeriksa ${txCount} transaksi...</div>
+      <div class="gate-progress"><div class="gate-progress-bar" id="gateBar"></div></div>
+      <div class="gate-progress-text" id="gatePText">0%</div>`;
+
+    const interval = setInterval(()=>{
+      pct += 2;
+      const bar = document.getElementById('gateBar');
+      const ptxt = document.getElementById('gatePText');
+      if(bar) bar.style.width = pct + '%';
+      if(ptxt) ptxt.textContent = pct + '%';
+      if(pct >= 100) clearInterval(interval);
+    }, 100); // 5 seconds total
+
+    await new Promise(r=>setTimeout(r,5000));
+    clearInterval(interval);
+
+    if(txCount < 30){
+      const need = 30 - txCount;
+      gateStatus.innerHTML = `<div class="gate-locked">⚠️ Transaksi belum cukup untuk recap.<br>Kamu punya <b>${txCount}</b> transaksi. Butuh <b>${need} lagi</b> untuk membuka Recap.</div>`;
+      gateAction.innerHTML = '';
+    } else {
+      gateStatus.innerHTML = `<div class="gate-watched">✅ ${txCount} transaksi ditemukan! Recap siap dimainkan.</div>`;
+      gateAction.innerHTML = `<button class="btn-recap-start" id="startBtn" style="margin-top:8px">▶ Mulai Recap</button>`;
+      document.getElementById('startBtn').onclick = () => {
+        document.getElementById('gateScreen').style.display = 'none';
+        startRecap(computeStats(appState));
+      };
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initGate);
+</script>
+</body>
+</html>
