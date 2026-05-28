@@ -1,54 +1,79 @@
-# 💰 WalletKu - Tracker Tabungan Pribadi
+# WalletKu Changelogs
 
-> privat punya bang aji, tapi siap dipake siapa aja
+## v2.2.0 — 2025-05-28
+### ✨ New Features
+- Recap WalletKu (`recap.html`): animasi fullscreen Spotify/Discord-style, 2 menit, auto-advance per slide
+- Recap konten: total pemasukan & pengeluaran, wallet terkaya, kategori terbesar, transaksi terbesar, streak hari aktif, total saldo
+- Recap membutuhkan minimal 30 transaksi untuk diaktifkan
+- Tombol "Cek Semua Transaksi Untuk Recap" dengan delay 5 detik scanning
+- Recap sistem 7 hari: setelah nonton dapat cap, bisa rewatch 7 hari, habis masa tutup otomatis
+- Skip recap → masuk Summary slide → Share Card cantik (bisa screenshot/export)
+- Sound on di recap (Web Audio API — music-like ambient + accent tones)
+- Konfeti & warna pop di highlight slide
+- Halaman Shortcuts di sidebar nav: daftar lengkap semua keyboard shortcut + deskripsi
+- File script.js direbrand jadi wallet.js
 
-**version:** 2.0.0 | **license:** MIT | **platform:** web
+### ⌨️ Keyboard Shortcuts
+- PIN screen: typing angka langsung dari keyboard PC (tanpa klik manual), non-angka auto-error sementara
+- Modal Simpan: Enter trigger Simpan hanya kalau tombol Simpan sedang di-focus
+- Modal Batal: shortcut X saat modal terbuka
+- Shortcut hint muncul saat hover tombol Simpan & Batal
+- Semua shortcut terdaftar di halaman `/shortcuts` di sidebar
 
----
-
-## ✨ Fitur Unggulan
-
-- 🔐 **Sistem PIN** - login pribadi, web aman walau linknya nyebar
-- 👛 **Multi Wallet** - punya dompet, tabungan cadangan, dll bebas buat sendiri
-- 📈 **Nambah/Kurang** - catat pemasukan & pengeluaran dengan detail sumber/tujuan
-- 📜 **Riwayat Lengkap** - semua transaksi dari dulu, bisa difilter per wallet
-- 🛍️ **Belanja Hari Ini** - lihat pengeluaran lo hari ini dalam satu tempat
-- 📸 **Export Foto 1440p** - capture total tabungan + belanja hari ini jadi gambar
-- 🎨 **Desain Keren** - glassmorphism, animasi hover, responsive semua device
-- 💾 **Privat 100%** - data cuma di localStorage browser lo, ga ada server
-
----
-
-## 🔧 Teknologi
-
-- HTML5 + CSS3 (native, ga pake framework)
-- JavaScript ES6+
-- LocalStorage buat database
-- html2canvas buat export foto
+### 🐛 Fixes
+- Shortcut Enter tidak nyasar ke halaman lain atau trigger aksi yang salah
+- Shortcut X tidak konflik dengan input teks
 
 ---
 
-## 📁 Struktur File
-walletku/
-├── index.html
-├── style.css
-└── script.js
+## v2.1.0 — 2025-05-06
+### ✨ New Features
+- Login system dengan username registration — no Firebase, pure localStorage
+- Username stored separately dari encrypted data, PIN tetap jadi encryption key
+- Account Settings: ganti username, ganti PIN, export/import data backup
+- Changelog page — card layout, load dari `changelogs.md` dinamis
+- Sound effects system — contextual mix via Web Audio API
+- Sounds: PIN tap, login success, error shake, transaction added, delete, toast pop
+
+### 🎨 Design Overhaul
+- Particle background dengan glow trails
+- Full 3D card tilt + parallax on hover
+- GPU-accelerated micro-interactions
+- Glowing border animations
+- Staggered entrance animations
+- Multi-layer glassmorphism backdrop-filter
+- Spring physics toast notifications
+
+### 🔒 Security
+- PIN lock unchanged — AES-GCM 256-bit, PBKDF2 200k iterations
+- Username flow: register → delay → login (no data wipe)
+- Export backup adalah JSON encrypted snapshot
 
 ---
 
-## 🔒 Privasi
+## v2.0.0 — 2025-05-05
+### ✨ New Features
+- Full PIN-based encryption (AES-GCM + PBKDF2)
+- Multi-wallet system (unlimited, custom icon + color)
+- Transaction management: add, edit, delete dengan real-time balance
+- Dashboard dengan 7-day bar chart dan expense pie chart
+- Filter by wallet, type, category, date range, search
+- Global savings goal dengan progress bar
+- Export snapshot: 1440p (instant) dan 4K (10-second delay)
+- Sidebar navigation collapsible mobile
+- Lock app button
 
-data disimpan di localStorage browser lo sendiri. setiap orang yang buka web ini punya datanya masing-masing, ga nyambung. aman.
+### 🎨 Design
+- Dark luxury fintech aesthetic
+- Glassmorphism cards dengan gold accent
+- Syne + DM Sans typography
+- Responsive layout (mobile-first)
 
 ---
 
-## 📝 Catatan Penting
-
-- pertama kali buka, lo akan diminta bikin PIN
-- setelah login, buat dulu wallet (Dompet, Tabungan Cadangan, dll)
-- saldo awal 0, isi lewat fitur Lapor Nambah Uang
-- jangan lupa PIN-nya ya bang, soalnya ga ada fitur lupa PIN
-
----
-
-**dibikin untuk bang aji by claude + bestie** 
+## v1.0.0 — 2025-05-01
+### 🎉 Initial Release
+- Basic wallet tracker (single wallet)
+- Income dan expense logging
+- Simple localStorage persistence
+- Minimal UI dengan IDR currency
