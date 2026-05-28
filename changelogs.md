@@ -1,67 +1,79 @@
 # WalletKu Changelogs
 
-## v2.1.0 — 2026-05-06
+## v2.2.0 — 2025-05-28
 ### ✨ New Features
-- Login system with username registration — no Firebase, pure localStorage
-- Username stored separately from encrypted data, PIN still the encryption key
-- Account Settings page: change username, change PIN, export data backup
-- Changelog page — card layout, loads from `changelogs.md` dynamically
-- Sound effects system — contextual mix: sci-fi beeps, soft UI clicks, game-like pops
-- 🎵 Sounds: PIN tap, login success, error shake, transaction added, delete confirm, toast pop
+- Recap WalletKu (`recap.html`): animasi fullscreen Spotify/Discord-style, 2 menit, auto-advance per slide
+- Recap konten: total pemasukan & pengeluaran, wallet terkaya, kategori terbesar, transaksi terbesar, streak hari aktif, total saldo
+- Recap membutuhkan minimal 30 transaksi untuk diaktifkan
+- Tombol "Cek Semua Transaksi Untuk Recap" dengan delay 5 detik scanning
+- Recap sistem 7 hari: setelah nonton dapat cap, bisa rewatch 7 hari, habis masa tutup otomatis
+- Skip recap → masuk Summary slide → Share Card cantik (bisa screenshot/export)
+- Sound on di recap (Web Audio API — music-like ambient + accent tones)
+- Konfeti & warna pop di highlight slide
+- Halaman Shortcuts di sidebar nav: daftar lengkap semua keyboard shortcut + deskripsi
+- File script.js direbrand jadi wallet.js
+
+### ⌨️ Keyboard Shortcuts
+- PIN screen: typing angka langsung dari keyboard PC (tanpa klik manual), non-angka auto-error sementara
+- Modal Simpan: Enter trigger Simpan hanya kalau tombol Simpan sedang di-focus
+- Modal Batal: shortcut X saat modal terbuka
+- Shortcut hint muncul saat hover tombol Simpan & Batal
+- Semua shortcut terdaftar di halaman `/shortcuts` di sidebar
+
+### 🐛 Fixes
+- Shortcut Enter tidak nyasar ke halaman lain atau trigger aksi yang salah
+- Shortcut X tidak konflik dengan input teks
+
+---
+
+## v2.1.0 — 2025-05-06
+### ✨ New Features
+- Login system dengan username registration — no Firebase, pure localStorage
+- Username stored separately dari encrypted data, PIN tetap jadi encryption key
+- Account Settings: ganti username, ganti PIN, export/import data backup
+- Changelog page — card layout, load dari `changelogs.md` dinamis
+- Sound effects system — contextual mix via Web Audio API
+- Sounds: PIN tap, login success, error shake, transaction added, delete, toast pop
 
 ### 🎨 Design Overhaul
-- MAKSIMAL animations — particle background with glow trails
-- Full 3D card tilt + parallax on hover (perspective transform)
-- GPU-accelerated micro-interactions on every interactive element
-- Glowing border animations on active cards
-- Staggered entrance animations per element
-- Blur glassmorphism layers upgraded — multi-layer backdrop-filter
-- Sidebar hover with 3D depth push effect
-- Toast notifications with spring physics animation
-- Ambient particle system running in canvas background
+- Particle background dengan glow trails
+- Full 3D card tilt + parallax on hover
+- GPU-accelerated micro-interactions
+- Glowing border animations
+- Staggered entrance animations
+- Multi-layer glassmorphism backdrop-filter
+- Spring physics toast notifications
 
 ### 🔒 Security
 - PIN lock unchanged — AES-GCM 256-bit, PBKDF2 200k iterations
-- Username flow: register on first run → brief delay → re-login (no data wipe)
-- Logout clears session only, all encrypted data stays safe
-- Export backup is JSON encrypted snapshot
-
-### 🐛 Fixes
-- Wallet balance correctly reverses on transaction edit
-- Chart canvas properly destroyed before re-render
-- Modal overlay click-outside now works on all pages
+- Username flow: register → delay → login (no data wipe)
+- Export backup adalah JSON encrypted snapshot
 
 ---
 
-## v2.0.0 — 2026-05-05
+## v2.0.0 — 2025-05-05
 ### ✨ New Features
 - Full PIN-based encryption (AES-GCM + PBKDF2)
 - Multi-wallet system (unlimited, custom icon + color)
-- Transaction management: add, edit, delete with real-time balance
-- Dashboard with 7-day bar chart and expense pie chart
+- Transaction management: add, edit, delete dengan real-time balance
+- Dashboard dengan 7-day bar chart dan expense pie chart
 - Filter by wallet, type, category, date range, search
-- Global savings goal with progress bar
-- Export snapshot: 1440p (instant) and 4K (10-second render delay)
-- Sidebar navigation with collapsible mobile support
-- Lock app button to re-engage PIN screen
+- Global savings goal dengan progress bar
+- Export snapshot: 1440p (instant) dan 4K (10-second delay)
+- Sidebar navigation collapsible mobile
+- Lock app button
 
 ### 🎨 Design
 - Dark luxury fintech aesthetic
-- Glassmorphism cards with gold accent
+- Glassmorphism cards dengan gold accent
 - Syne + DM Sans typography
-- Responsive layout (mobile-first sidebar)
-- Smooth CSS transitions throughout
-
-### 🔒 Security
-- All data AES-GCM encrypted at rest in localStorage
-- PIN never stored — used only to derive encryption key
-- Salt stored separately, 200k PBKDF2 iterations
+- Responsive layout (mobile-first)
 
 ---
 
-## v1.0.0 — 2026-05-01
+## v1.0.0 — 2025-05-01
 ### 🎉 Initial Release
 - Basic wallet tracker (single wallet)
-- Income and expense logging
-- Simple localStorage persistence (unencrypted)
-- Minimal UI with IDR currency support
+- Income dan expense logging
+- Simple localStorage persistence
+- Minimal UI dengan IDR currency
