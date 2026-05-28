@@ -15,6 +15,7 @@
 
 <canvas id="particleCanvas"></canvas>
 
+<!-- PIN SCREEN -->
 <div id="pinScreen" class="pin-screen">
   <div class="pin-card">
     <div class="pin-logo"><span class="logo-glow">◈</span> WalletKu</div>
@@ -37,10 +38,11 @@
       <button class="pin-btn" data-val="0">0</button>
       <button class="pin-btn pin-btn--del" id="pinDel">⌫</button>
     </div>
-    <div class="pin-hint" id="pinHint"></div>
+    <div class="pin-hint" id="pinHint">💡 Ketik langsung dari keyboard</div>
   </div>
 </div>
 
+<!-- LOGIN SCREEN -->
 <div id="loginScreen" class="login-screen hidden">
   <div class="login-card" id="loginCard">
     <div class="login-logo"><span class="logo-glow">◈</span><span>WalletKu</span></div>
@@ -77,6 +79,7 @@
   </div>
 </div>
 
+<!-- APP -->
 <div id="app" class="app hidden">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
@@ -97,11 +100,14 @@
       <button class="nav-item" data-page="goals"><span class="nav-icon">◉</span><span>Target</span></button>
       <button class="nav-item" data-page="export"><span class="nav-icon">↗</span><span>Export</span></button>
       <button class="nav-item" data-page="changelog"><span class="nav-icon">📋</span><span>Changelog</span></button>
+      <button class="nav-item" data-page="shortcuts"><span class="nav-icon">⌨</span><span>Shortcuts</span></button>
       <button class="nav-item" data-page="settings"><span class="nav-icon">⚙</span><span>Settings</span></button>
+      <div class="nav-divider"></div>
+      <button class="nav-item nav-recap" id="recapNavBtn"><span class="nav-icon">✦</span><span>WalletKu Recap</span><span class="recap-badge" id="recapBadge"></span></button>
     </nav>
     <div class="sidebar-footer">
       <button class="btn-lock" id="lockBtn">🔒 Kunci App</button>
-      <div class="sidebar-ver">WalletKu v2.1</div>
+      <div class="sidebar-ver">WalletKu v2.2</div>
     </div>
   </aside>
 
@@ -120,6 +126,7 @@
   </div>
 </div>
 
+<!-- MODAL -->
 <div id="modalOverlay" class="modal-overlay hidden">
   <div class="modal" id="modal">
     <div class="modal-header">
@@ -130,8 +137,9 @@
   </div>
 </div>
 
+<!-- TOAST -->
 <div id="toastContainer" class="toast-container"></div>
 
-<script src="script.js"></script>
+<script src="wallet.js"></script>
 </body>
 </html>
