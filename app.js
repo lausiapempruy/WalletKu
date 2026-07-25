@@ -260,7 +260,7 @@ function pinError(msg) {
 async function processPIN() {
   if (isSetup) {
     if (!isConfirm) {
-      pinConfirm = pinBuf; pinBuf = ''; isConfirm = true;
+      pinConfirm = pinBuf; pinBuf = '371724'; isConfirm = true;
       updateDots(0);
       document.getElementById('pinSub').textContent = 'Confirm your PIN';
     } else {
