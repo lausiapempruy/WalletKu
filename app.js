@@ -7,11 +7,13 @@
 // ── CONSTANTS ──────────────────────────────────
 const LS_SALT    = 'wk_salt_v2';
 const LS_VERIFY  = 'wk_verify_v2';
-const LS_DATA    = 'wk_data_v3';
+// Keep same key as v2.x so existing encrypted data is not lost on upgrade
+const LS_DATA    = 'wk_data_v2';
 const LS_USER    = 'wk_username_v2';
 const LS_THEME   = 'wk_theme_v1';
 const LS_NOTIFS  = 'wk_notifs_v1';
-const VERIFY_KEY = 'WALLETKU_OK_V23';
+// Must match the value originally written by setupPIN — never change this
+const VERIFY_KEY = 'WALLETKU_OK';
 
 const EMOJIS     = ['💰','💳','🏦','🏧','📦','🛒','✈️','🎓','💊','🏠','🚗','🍕','☕','🎮','💎','🌟','🎯','🔑','🌿','⚡','🎵','🏋️','🌏','🐕','🎁'];
 const PALETTE    = ['#c9a84c','#34d399','#60a5fa','#f87171','#a78bfa','#fb923c','#38bdf8','#f472b6','#4ade80','#e879f9'];
@@ -260,7 +262,7 @@ function pinError(msg) {
 async function processPIN() {
   if (isSetup) {
     if (!isConfirm) {
-      pinConfirm = pinBuf; pinBuf = '371724'; isConfirm = true;
+      pinConfirm = pinBuf; pinBuf = ''; isConfirm = true;
       updateDots(0);
       document.getElementById('pinSub').textContent = 'Confirm your PIN';
     } else {
@@ -279,6 +281,7 @@ async function processPIN() {
 async function setupPIN(pin) {
   const salt = crypto.getRandomValues(new Uint8Array(32));
   localStorage.setItem(LS_SALT, b64(salt));
+  // deriveKey expects Uint8Array for salt
   cryptoKey = await deriveKey(pin, salt);
   localStorage.setItem(LS_VERIFY, await encrypt(cryptoKey, VERIFY_KEY));
   state.settings.createdAt = new Date().toISOString();
@@ -289,16 +292,26 @@ async function setupPIN(pin) {
 }
 async function verifyPIN(pin) {
   try {
-    const salt = unb64(localStorage.getItem(LS_SALT));
-    const key  = await deriveKey(pin, new Uint8Array(salt));
-    const pl   = await decrypt(key, localStorage.getItem(LS_VERIFY));
-    if (pl !== VERIFY_KEY) throw new Error();
+    const saltRaw = localStorage.getItem(LS_SALT);
+    if (!saltRaw) throw new Error('No salt');
+    // unb64 returns ArrayBuffer — deriveKey needs Uint8Array
+    const saltBuf = new Uint8Array(unb64(saltRaw));
+    const key = await deriveKey(pin, saltBuf);
+    const verifyRaw = localStorage.getItem(LS_VERIFY);
+    if (!verifyRaw) throw new Error('No verify token');
+    const pl = await decrypt(key, verifyRaw);
+    // Accept both old plain-text verify value AND current VERIFY_KEY
+    if (pl !== VERIFY_KEY && pl !== 'WALLETKU_OK') throw new Error('PIN mismatch');
     cryptoKey = key;
     cachePin(pin);
     await loadData();
     SFX.ok();
     afterPINUnlock();
-  } catch(e) { pinError('Incorrect PIN — try again'); pinBuf = ''; }
+  } catch(e) {
+    console.warn('verifyPIN error:', e);
+    pinError('Incorrect PIN — try again');
+    pinBuf = '';
+  }
 }
 function cachePin(pin) {
   sessionStorage.setItem('wk_sk', pin);
@@ -1438,8 +1451,10 @@ function renderSettings(el) {
       if(op.length!==6||np.length!==6){toast('PINs must be 6 digits','error');return;}
       if(np!==cp){toast("New PINs don't match",'error');return;}
       try{
-        const salt=unb64(localStorage.getItem(LS_SALT)),key=await deriveKey(op,new Uint8Array(salt)),pl=await decrypt(key,localStorage.getItem(LS_VERIFY));
-        if(pl!==VERIFY_KEY)throw new Error();
+        const saltBuf=new Uint8Array(unb64(localStorage.getItem(LS_SALT)));
+        const key=await deriveKey(op,saltBuf);
+        const pl=await decrypt(key,localStorage.getItem(LS_VERIFY));
+        if(pl!==VERIFY_KEY&&pl!=='WALLETKU_OK')throw new Error();
         const ns=crypto.getRandomValues(new Uint8Array(32));localStorage.setItem(LS_SALT,b64(ns));
         const nk=await deriveKey(np,ns);localStorage.setItem(LS_VERIFY,await encrypt(nk,VERIFY_KEY));
         cryptoKey=nk;cachePin(np);await saveData();closeModal();SFX.save();toast('PIN changed!','success');
