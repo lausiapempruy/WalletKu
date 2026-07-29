@@ -423,7 +423,7 @@ function initNav() {
 function navigateTo(page) {
   currentPage = page;
   document.querySelectorAll('.nav-pill[data-page]').forEach(b => b.classList.toggle('active', b.dataset.page === page));
-  const titles = { dashboard:'Dashboard', wallets:'Wallets', transactions:'Transactions', recurring:'Recurring', budget:'Budget', goals:'Savings Goals', wishlist:'Wishlist', analytics:'Analytics', notes:'Daily Notes', export:'Export', shortcuts:'Shortcuts', settings:'Settings' };
+  const titles = { dashboard:'Dashboard', wallets:'Wallets', transactions:'Transactions', recurring:'Recurring', budget:'Budget', goals:'Savings Goals', wishlist:'Wishlist', analytics:'Analytics', notes:'Daily Notes', export:'Export', changelog:'Changelog', shortcuts:'Shortcuts', settings:'Settings' };
   document.getElementById('topbarTitle').textContent = titles[page] || page;
   Object.values(charts).forEach(c => { try { c.destroy(); } catch(e){} }); charts = {};
   const content = document.getElementById('pageContent');
@@ -439,6 +439,7 @@ function navigateTo(page) {
     case 'analytics':    renderAnalytics(content);    break;
     case 'notes':        renderNotes(content);        break;
     case 'export':       renderExport(content);       break;
+    case 'changelog':    renderChangelog(content);    break;
     case 'shortcuts':    renderShortcuts(content);    break;
     case 'settings':     renderSettings(content);     break;
   }
@@ -1308,7 +1309,7 @@ function renderExport(el) {
           <div style="background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.15);border-radius:10px;padding:14px"><div style="font-size:.65rem;color:#34d399;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Total Income</div><div style="font-size:.95rem;font-weight:700;color:#34d399">${fmtMoney(totalIn)}</div></div>
           <div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.15);border-radius:10px;padding:14px"><div style="font-size:.65rem;color:#f87171;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Total Expenses</div><div style="font-size:.95rem;font-weight:700;color:#f87171">${fmtMoney(totalOut)}</div></div>
         </div>
-        <div style="text-align:center;font-size:.65rem;color:rgba(255,255,255,.2)">Private data · WalletKu v2.3 · ${new Date().toLocaleDateString('id-ID')}</div>
+        <div style="text-align:center;font-size:.65rem;color:rgba(255,255,255,.2)">Private data · WalletKu v1.4.1 · ${new Date().toLocaleDateString('id-ID')}</div>
       </div>
     </div>
     <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap">
@@ -1330,6 +1331,83 @@ async function doExport(width,is4k) {
     SFX.save();toast(`Exported ${is4k?'4K':'1440p'}!`,'success');
   }catch(e){toast('Export failed','error');}
   finally{if(b1)b1.disabled=false;if(b4)b4.disabled=false;if(cd)cd.textContent='';}
+}
+
+// ════════════════════════════════════════════════
+// PAGE: CHANGELOG
+// ════════════════════════════════════════════════
+async function renderChangelog(el) {
+  el.innerHTML = `
+    <div class="section-header"><h2 class="section-title">Changelog</h2></div>
+    <div id="clContent">
+      <div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-title">Loading…</div></div>
+    </div>`;
+  try {
+    const res = await fetch('changelogs.md');
+    if (!res.ok) throw new Error('not found');
+    buildChangelogCards(await res.text(), document.getElementById('clContent'));
+  } catch(e) {
+    document.getElementById('clContent').innerHTML =
+      '<div class="empty-state"><div class="empty-icon">📄</div><div class="empty-title">changelogs.md not found</div><div class="empty-desc">Make sure the file is in the same folder as index.html</div></div>';
+  }
+}
+
+function buildChangelogCards(md, container) {
+  const blocks = md.split(/^## /m).filter(b => b.trim());
+  if (!blocks.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-title">Changelog is empty</div></div>';
+    return;
+  }
+
+  // Color map per version prefix
+  const vColor = v => {
+    if (v.startsWith('v1.4')) return 'var(--accent)';
+    if (v.startsWith('v1.3')) return 'var(--purple)';
+    if (v.startsWith('v1.2')) return 'var(--blue)';
+    if (v.startsWith('v1.1')) return 'var(--green)';
+    return 'var(--text-secondary)';
+  };
+
+  const html = blocks.map((block, idx) => {
+    const lines   = block.split('\n');
+    const header  = lines[0].trim();
+    const rest    = lines.slice(1).join('\n');
+    const parts   = header.split(/\s*—\s*/);
+    const version = parts[0]?.trim() || header;
+    const date    = parts[1]?.trim() || '';
+
+    const sections = rest.split(/^### /m).filter(s => s.trim());
+    const sectHTML = sections.map(sec => {
+      const sl    = sec.split('\n');
+      const title = sl[0].trim();
+      const items = sl.slice(1)
+        .filter(l => l.trim().startsWith('-'))
+        .map(l => `<div style="display:flex;gap:8px;font-size:.82rem;color:var(--text-secondary);line-height:1.55;padding:3px 0"><span style="color:var(--text-quaternary);flex-shrink:0">—</span><span>${l.replace(/^[-*]\s*/,'').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').trim()}</span></div>`)
+        .join('');
+      return items ? `
+        <div style="margin-bottom:var(--sp-4)">
+          <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text-tertiary);margin-bottom:var(--sp-2)">${title}</div>
+          ${items}
+        </div>` : '';
+    }).join('');
+
+    const isCurrent = idx === 0;
+
+    return `
+      <div class="bento-card bento-12" style="animation-delay:${idx*.06}s;${isCurrent?`border-color:${vColor(version)}33;`:''}position:relative;overflow:hidden">
+        ${isCurrent ? `<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,${vColor(version)},transparent)"></div>` : ''}
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:var(--sp-4);gap:var(--sp-4)">
+          <div>
+            <div style="font-size:1.1rem;font-weight:800;letter-spacing:-.03em;color:${vColor(version)}">${version}</div>
+            ${date ? `<div style="font-size:.72rem;color:var(--text-tertiary);margin-top:3px">📅 ${date}</div>` : ''}
+          </div>
+          ${isCurrent ? `<span class="badge badge-gold" style="flex-shrink:0">Current</span>` : ''}
+        </div>
+        ${sectHTML || `<div style="font-size:.82rem;color:var(--text-secondary)">${rest.split('\n').filter(l=>l.trim().startsWith('-')).map(l=>`<div style="padding:3px 0">— ${l.replace(/^[-*]\s*/,'').trim()}</div>`).join('')}</div>`}
+      </div>`;
+  }).join('');
+
+  container.innerHTML = `<div class="bento-grid">${html}</div>`;
 }
 
 // ════════════════════════════════════════════════
