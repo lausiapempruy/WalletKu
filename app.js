@@ -1557,11 +1557,70 @@ function renderSettings(el) {
   document.getElementById('clearDataBtn').addEventListener('click',()=>{confirmDlg('Delete ALL wallets, transactions, goals, budgets, notes, wishlist, and recurring? This cannot be undone.',async()=>{state={wallets:[],transactions:[],goals:[],wishlist:[],budgets:[],recurring:[],notes:[],settings:{...state.settings}};await saveData();SFX.del();toast('All data cleared','info');navigateTo('dashboard');});});
 }
 
-// ════════════════════════════════════════════════
-// BOOT
-// ════════════════════════════════════════════════
+// ── SHUTDOWN BANNER ────────────────────────────
+function initShutdownBanner() {
+  const banner    = document.getElementById('shutdownBanner');
+  const dismiss   = document.getElementById('shutdownDismiss');
+  const countEl   = document.getElementById('shutdownCountdown');
+  if (!banner) return;
+
+  // Dismiss state stored in sessionStorage (shows again on new tab)
+  if (sessionStorage.getItem('wk_banner_dismissed')) {
+    banner.classList.add('hidden');
+    document.getElementById('app')?.classList.add('banner-dismissed');
+    return;
+  }
+
+  // Target: 21 Sep 2026 21:00 WIB (UTC+7 = 14:00 UTC)
+  const TARGET = new Date('2026-09-21T14:00:00Z');
+
+  function updateCountdown() {
+    const now  = new Date();
+    const diff = TARGET - now;
+
+    if (diff <= 0) {
+      countEl.textContent = '🔴 Layanan Berakhir';
+      countEl.style.color = 'var(--red)';
+      countEl.style.borderColor = 'rgba(248,113,113,0.3)';
+      countEl.style.background  = 'rgba(248,113,113,0.1)';
+      return;
+    }
+
+    const days    = Math.floor(diff / 86400000);
+    const hours   = Math.floor((diff % 86400000) / 3600000);
+    const minutes = Math.floor((diff % 3600000)  / 60000);
+    const seconds = Math.floor((diff % 60000)    / 1000);
+
+    const pad = n => String(n).padStart(2, '0');
+
+    if (days > 0) {
+      countEl.textContent = `${days}h ${pad(hours)}j ${pad(minutes)}m ${pad(seconds)}d`;
+    } else {
+      countEl.textContent = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+      // Under 24h — turn red
+      if (hours < 24) {
+        countEl.style.color = 'var(--red)';
+        countEl.style.borderColor = 'rgba(248,113,113,0.3)';
+        countEl.style.background  = 'rgba(248,113,113,0.1)';
+      }
+    }
+  }
+
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+
+  dismiss?.addEventListener('click', () => {
+    SFX.click();
+    banner.classList.add('hidden');
+    document.getElementById('app')?.classList.add('banner-dismissed');
+    sessionStorage.setItem('wk_banner_dismissed', '1');
+  });
+}
+
+// ── BOOT ───────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initCursorGlow();
+  initShutdownBanner();
   initPinScreen();
 });
