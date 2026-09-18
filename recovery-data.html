@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Recovery Data — WalletKu</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23111113'/%3E%3Ctext x='16' y='22' font-size='20' text-anchor='middle' fill='%23f87171' font-family='system-ui%2C sans-serif' font-weight='900'%3E%E2%9A%A0%3C/text%3E%3C/svg%3E"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:       #09090b;
+      --bg2:      #111113;
+      --bg3:      #18181b;
+      --glass:    rgba(255,255,255,0.04);
+      --glass-h:  rgba(255,255,255,0.08);
+      --border:   rgba(255,255,255,0.08);
+      --border2:  rgba(255,255,255,0.14);
+      --border3:  rgba(255,255,255,0.22);
+      --text:     #fafafa;
+      --text2:    rgba(255,255,255,0.6);
+      --text3:    rgba(255,255,255,0.35);
+      --text4:    rgba(255,255,255,0.18);
+      --gold:     #c9a84c;
+      --gold2:    #e8c96a;
+      --gold-dim: rgba(201,168,76,0.14);
+      --gold-glow:rgba(201,168,76,0.3);
+      --green:    #34d399;
+      --green-dim:rgba(52,211,153,0.12);
+      --red:      #f87171;
+      --red-dim:  rgba(248,113,113,0.12);
+      --orange:   #fb923c;
+      --blue:     #60a5fa;
+      --blue-dim: rgba(96,165,250,0.12);
+      --r-sm: 10px; --r-md: 16px; --r-lg: 22px; --r-pill: 999px;
+      --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
+      --ease-out: cubic-bezier(0.16,1,0.3,1);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{
+      font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+      background:var(--bg); color:var(--text);
+      min-height:100vh; -webkit-font-smoothing:antialiased;
+    }
+
+    /* Aurora */
+    .aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+    .orb{position:absolute;border-radius:50%;filter:blur(80px);animation:drift 20s ease-in-out infinite alternate}
+    .orb-1{width:500px;height:500px;background:rgba(248,113,113,0.05);top:-150px;left:-100px;animation-duration:18s}
+    .orb-2{width:400px;height:400px;background:rgba(201,168,76,0.05);top:40%;right:-100px;animation-duration:22s;animation-delay:-5s}
+    .orb-3{width:600px;height:300px;background:rgba(96,165,250,0.04);bottom:-100px;left:20%;animation-duration:25s;animation-delay:-10s}
+    @keyframes drift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,-30px) scale(1.1)}100%{transform:translate(-20px,40px) scale(.95)}}
+
+    /* Layout */
+    .page{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:40px 24px 80px}
+
+    /* Header */
+    .page-header{text-align:center;margin-bottom:48px}
+    .page-logo{font-size:2.5rem;font-weight:900;color:var(--red);filter:drop-shadow(0 0 16px rgba(248,113,113,0.4));margin-bottom:16px;animation:logoPulse 2.5s ease-in-out infinite}
+    @keyframes logoPulse{0%,100%{filter:drop-shadow(0 0 16px rgba(248,113,113,0.4))}50%{filter:drop-shadow(0 0 28px rgba(248,113,113,0.6))}}
+    .page-title{font-size:clamp(1.6rem,4vw,2.2rem);font-weight:800;letter-spacing:-.04em;margin-bottom:8px}
+    .page-sub{font-size:.9rem;color:var(--text2);line-height:1.6;max-width:500px;margin:0 auto}
+
+    /* Alert box */
+    .alert{border-radius:var(--r-md);padding:18px 20px;margin-bottom:20px;border:1px solid;font-size:.85rem;line-height:1.7}
+    .alert-red{background:var(--red-dim);border-color:rgba(248,113,113,0.25);color:var(--red)}
+    .alert-gold{background:var(--gold-dim);border-color:rgba(201,168,76,0.25);color:var(--gold)}
+    .alert-blue{background:var(--blue-dim);border-color:rgba(96,165,250,0.25);color:var(--blue)}
+    .alert-green{background:var(--green-dim);border-color:rgba(52,211,153,0.25);color:var(--green)}
+    .alert b{font-weight:700;color:var(--text)}
+    .alert a{color:inherit;font-weight:700;text-decoration:none}
+    .alert a:hover{text-decoration:underline}
+
+    /* Section */
+    .section{background:var(--glass);border:1px solid var(--border);border-radius:var(--r-lg);padding:28px;margin-bottom:20px;animation:cardUp .5s var(--ease-out) both}
+    @keyframes cardUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    .section:nth-child(2){animation-delay:.06s}
+    .section:nth-child(3){animation-delay:.12s}
+    .section:nth-child(4){animation-delay:.18s}
+    .section:nth-child(5){animation-delay:.24s}
+
+    .section-eyebrow{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:6px}
+    .section-title{font-size:1.05rem;font-weight:800;letter-spacing:-.02em;margin-bottom:4px}
+    .section-sub{font-size:.8rem;color:var(--text2);line-height:1.6;margin-bottom:20px}
+
+    /* Countdown chip */
+    .countdown-chip{display:inline-flex;align-items:center;gap:8px;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.25);border-radius:var(--r-pill);padding:8px 16px;font-size:.82rem;font-weight:700;color:var(--red);margin-bottom:20px;font-variant-numeric:tabular-nums}
+    .countdown-chip.safe{background:var(--gold-dim);border-color:rgba(201,168,76,0.25);color:var(--gold)}
+
+    /* Steps */
+    .steps{display:flex;flex-direction:column;gap:12px;margin-bottom:24px}
+    .step{display:flex;align-items:flex-start;gap:14px;padding:14px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm)}
+    .step-num{width:26px;height:26px;border-radius:50%;background:var(--gold-dim);border:1px solid rgba(201,168,76,0.3);color:var(--gold);font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+    .step-text{font-size:.83rem;color:var(--text2);line-height:1.6}
+    .step-text b{color:var(--text);font-weight:600}
+
+    /* Buttons */
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 22px;border-radius:var(--r-md);font-family:'Inter',sans-serif;font-size:.88rem;font-weight:700;border:none;cursor:pointer;transition:all .25s var(--ease-out);letter-spacing:-.01em}
+    .btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#07090f}
+    .btn-primary:hover{transform:translateY(-1px) scale(1.02);box-shadow:0 8px 24px var(--gold-glow)}
+    .btn-primary:active{transform:scale(.97)}
+    .btn-primary:disabled{opacity:.45;pointer-events:none}
+    .btn-ghost{background:var(--glass);border:1px solid var(--border2);color:var(--text)}
+    .btn-ghost:hover{background:var(--glass-h);transform:translateY(-1px)}
+    .btn-danger{background:var(--red-dim);border:1px solid rgba(248,113,113,0.25);color:var(--red)}
+    .btn-danger:hover{background:rgba(248,113,113,0.2);transform:translateY(-1px)}
+    .btn-success{background:var(--green-dim);border:1px solid rgba(52,211,153,0.25);color:var(--green)}
+    .btn-success:hover{background:rgba(52,211,153,0.2);transform:translateY(-1px)}
+    .btn-full{width:100%;padding:13px}
+    .btn-row{display:flex;gap:10px;flex-wrap:wrap}
+
+    /* Form */
+    .form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+    .form-label{font-size:.75rem;font-weight:600;color:var(--text2)}
+    .form-input{background:rgba(15,22,40,.85);border:1px solid var(--border2);border-radius:var(--r-sm);padding:11px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:.9rem;transition:all .2s;width:100%;outline:none}
+    .form-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-dim)}
+    .form-input::placeholder{color:var(--text3)}
+    .form-note{font-size:.72rem;color:var(--text3);margin-top:4px;line-height:1.5}
+
+    /* Pin dots */
+    .pin-dots-row{display:flex;gap:10px;justify-content:center;margin:16px 0}
+    .pin-dot{width:13px;height:13px;border-radius:50%;border:1.5px solid var(--border2);transition:all .2s var(--ease-spring)}
+    .pin-dot.filled{background:var(--gold);border-color:var(--gold);box-shadow:0 0 10px var(--gold-glow);transform:scale(1.1)}
+    .pin-dot.ok{background:var(--green);border-color:var(--green);box-shadow:0 0 10px rgba(52,211,153,.4)}
+    .pin-dot.err{background:var(--red);border-color:var(--red);animation:shake .35s ease}
+    @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+    /* Mini numpad */
+    .mini-pad{display:grid;grid-template-columns:repeat(3,64px);gap:8px;justify-content:center;margin:12px 0}
+    .mini-key{width:64px;height:64px;border-radius:50%;background:var(--glass);border:1px solid var(--border);color:var(--text);font-family:'Inter',sans-serif;font-size:1.2rem;font-weight:300;cursor:pointer;transition:all .2s var(--ease-spring);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+    .mini-key small{font-size:.42rem;font-weight:600;letter-spacing:.15em;color:var(--text3)}
+    .mini-key:hover{background:var(--glass-h);border-color:var(--border2);transform:scale(1.06)}
+    .mini-key:active{transform:scale(.92)}
+    .mini-key.del{font-size:1rem}
+    .mini-key.empty{background:transparent;border-color:transparent;pointer-events:none}
+
+    /* Status messages */
+    .status-msg{font-size:.8rem;min-height:20px;text-align:center;margin-top:4px;transition:all .2s}
+    .status-msg.err{color:var(--red)}
+    .status-msg.ok{color:var(--green)}
+    .status-msg.info{color:var(--text3)}
+
+    /* Export preview */
+    .export-preview{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-md);padding:16px;font-size:.78rem;color:var(--text2);font-family:monospace;max-height:160px;overflow-y:auto;line-height:1.6;word-break:break-all;display:none}
+    .export-preview.visible{display:block}
+
+    /* Back link */
+    .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--text3);font-size:.8rem;text-decoration:none;margin-bottom:32px;transition:color .15s}
+    .back-link:hover{color:var(--text)}
+
+    /* Timeline (shutdown info) */
+    .timeline{display:flex;flex-direction:column;gap:0}
+    .tl-item{display:flex;gap:16px;align-items:flex-start;padding-bottom:20px;position:relative}
+    .tl-item:not(:last-child)::before{content:'';position:absolute;left:15px;top:32px;bottom:0;width:1px;background:var(--border2)}
+    .tl-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;border:1px solid var(--border2)}
+    .tl-dot.past{background:var(--red-dim);border-color:rgba(248,113,113,.3)}
+    .tl-dot.warn{background:var(--gold-dim);border-color:rgba(201,168,76,.3)}
+    .tl-dot.gone{background:rgba(248,113,113,.06);border-color:rgba(248,113,113,.15)}
+    .tl-content{flex:1;padding-top:4px}
+    .tl-date{font-size:.7rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px}
+    .tl-title{font-size:.88rem;font-weight:700;margin-bottom:2px}
+    .tl-desc{font-size:.78rem;color:var(--text2);line-height:1.5}
+
+    /* Toast */
+    #toastEl{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-80px);z-index:9999;background:rgba(17,17,19,.95);border:1px solid var(--border2);border-radius:var(--r-pill);padding:10px 20px;font-size:.82rem;font-weight:500;color:var(--text);white-space:nowrap;backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(0,0,0,.5);transition:transform .35s var(--ease-spring),opacity .25s;opacity:0}
+    #toastEl.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+    /* Responsive */
+    @media(max-width:480px){
+      .page{padding:24px 16px 60px}
+      .btn-row{flex-direction:column}
+      .btn-row .btn{width:100%}
+    }
+  </style>
+</head>
+<body>
+
+<div class="aurora" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<div id="toastEl"></div>
+
+<main class="page">
+
+  <a href="index.html" class="back-link">← Kembali ke WalletKu</a>
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="page-logo">⚠️</div>
+    <h1 class="page-title">Recovery Data & Bantuan Akses</h1>
+    <p class="page-sub">Halaman ini membantu kamu mengekspor data sebelum layanan ditutup, mereset PIN jika lupa, dan migrasi ke WalletKu Freebuff.</p>
+  </div>
+
+  <!-- COUNTDOWN SHUTDOWN -->
+  <div style="text-align:center;margin-bottom:32px">
+    <div class="countdown-chip" id="mainCountdown">⏳ Menghitung…</div>
+    <div style="font-size:.72rem;color:var(--text3);margin-top:6px">Layanan berakhir 26 September 2026, 21:00 WIB</div>
+  </div>
+
+  <!-- SECTION 1 — INFO PENUTUPAN -->
+  <div class="section" style="animation-delay:.00s">
+    <div class="section-eyebrow">Informasi Penutupan</div>
+    <div class="section-title">Timeline Layanan WalletKu</div>
+    <div class="section-sub">Semua yang perlu kamu tahu tentang perpindahan ini.</div>
+
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot past">📦</div>
+        <div class="tl-content">
+          <div class="tl-date">April 2026 — September 2026</div>
+          <div class="tl-title">WalletKu GitHub Edition — Aktif 5 Bulan</div>
+          <div class="tl-desc">Berjalan sebagai website pribadi di GitHub Pages. Fitur berkembang dari v1.0 hingga v1.4.1 dengan enkripsi AES-GCM, multi-wallet, budget, analytics, dan lebih banyak lagi.</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot warn">🚀</div>
+        <div class="tl-content">
+          <div class="tl-date">26 September 2026, 21:00 WIB</div>
+          <div class="tl-title">Layanan GitHub Edition Berakhir</div>
+          <div class="tl-desc">Website ini berhenti beroperasi. <b>Ekspor data kamu sebelum tanggal ini.</b> WalletKu resmi pindah ke Freebuff dan menjadi open publik untuk semua orang.</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot gone">🗑️</div>
+        <div class="tl-content">
+          <div class="tl-date">1 Oktober 2026</div>
+          <div class="tl-title">Repository Dihapus &amp; Website Freebuff Transisi Tutup</div>
+          <div class="tl-desc">Repository GitHub dihapus permanen. Website baru Freebuff menutup masa transisi. Versi Freebuff penuh tersedia di <a href="https://walletku.freebuff.app/" target="_blank" rel="noopener" style="color:var(--gold);font-weight:700">walletku.freebuff.app</a> dengan fitur v3 yang lebih lengkap dan keamanan lebih tinggi.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert alert-gold" style="margin-bottom:0">
+      💡 <b>Migrasi ke Freebuff:</b> Kamu perlu membuat akun baru di WalletKu Freebuff. Ekspor data dari halaman ini, lalu import di versi baru.
+      <br/><a href="https://walletku.freebuff.app/" target="_blank" rel="noopener">→ Buka WalletKu Freebuff</a>
+    </div>
+  </div>
+
+  <!-- SECTION 2 — EKSPOR DATA -->
+  <div class="section" style="animation-delay:.08s">
+    <div class="section-eyebrow">Ekspor Data</div>
+    <div class="section-title">Ekspor Data ke Format Freebuff</div>
+    <div class="section-sub">Data kamu akan disusun ke format JSON yang kompatibel dengan WalletKu Freebuff, lalu kamu simpan ke perangkat kamu.</div>
+
+    <div class="alert alert-blue" style="margin-bottom:20px">
+      🔐 Data kamu <b>dienkripsi di browser</b>. Untuk mengekspor, kamu perlu memasukkan PIN terlebih dahulu untuk mendekripsi.
+    </div>
+
+    <!-- PIN unlock untuk ekspor -->
+    <div id="exportPinSection">
+      <div class="form-label" style="text-align:center;margin-bottom:8px">Masukkan PIN untuk mengakses data</div>
+      <div class="pin-dots-row" id="exportDots">
+        <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+        <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+      <div class="status-msg info" id="exportPinMsg">6 digit PIN WalletKu kamu</div>
+      <div class="mini-pad">
+        <button class="mini-key" data-val="1">1</button>
+        <button class="mini-key" data-val="2">2<small>ABC</small></button>
+        <button class="mini-key" data-val="3">3<small>DEF</small></button>
+        <button class="mini-key" data-val="4">4<small>GHI</small></button>
+        <button class="mini-key" data-val="5">5<small>JKL</small></button>
+        <button class="mini-key" data-val="6">6<small>MNO</small></button>
+        <button class="mini-key" data-val="7">7<small>PQRS</small></button>
+        <button class="mini-key" data-val="8">8<small>TUV</small></button>
+        <button class="mini-key" data-val="9">9<small>WXYZ</small></button>
+        <button class="mini-key empty"></button>
+        <button class="mini-key" data-val="0">0</button>
+        <button class="mini-key del" id="exportPinDel">⌫</button>
+      </div>
+    </div>
+
+    <!-- Setelah unlock -->
+    <div id="exportUnlocked" style="display:none">
+      <div class="alert alert-green" style="margin-bottom:20px">✅ Data berhasil didekripsi. Siap untuk diekspor.</div>
+
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div class="step-text">Klik <b>Ekspor JSON Freebuff</b> — file JSON akan terdownload ke perangkat kamu</div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-text">Simpan file tersebut dengan aman — ini berisi semua data keuanganmu (wallets, transaksi, goals, dll)</div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-text">Buka <a href="https://walletku.freebuff.app/" target="_blank" rel="noopener" style="color:var(--gold);font-weight:600">walletku.freebuff.app</a> → Buat akun baru → Import file JSON di halaman Settings</div></div>
+      </div>
+
+      <div id="exportPreview" class="export-preview"></div>
+      <div style="height:12px"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary btn-full" id="doExportBtn">⬇ Ekspor JSON Freebuff</button>
+        <button class="btn btn-ghost" id="previewBtn" style="flex-shrink:0">👁 Preview</button>
+      </div>
+      <div class="form-note" style="margin-top:12px;text-align:center">
+        File JSON ini <b>tidak dienkripsi</b> — simpan di tempat aman dan jangan dibagikan ke orang lain.
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3 — RESET PIN / LUPA PIN -->
+  <div class="section" style="animation-delay:.16s">
+    <div class="section-eyebrow">Lupa PIN</div>
+    <div class="section-title">Reset PIN — Buat PIN Baru</div>
+    <div class="section-sub">Kalau kamu lupa PIN dan tidak bisa masuk, kamu bisa reset PIN. <b>Perhatian:</b> reset PIN akan menghapus semua data yang terenkripsi karena key enkripsi lama tidak bisa dipulihkan tanpa PIN asli.</div>
+
+    <div class="alert alert-red" style="margin-bottom:20px">
+      ⚠️ <b>Peringatan keras:</b> Jika kamu lupa PIN dan belum punya backup data, semua data WalletKu kamu akan hilang permanen setelah reset. Tidak ada cara untuk memulihkannya.
+    </div>
+
+    <div id="resetStep1">
+      <p style="font-size:.85rem;color:var(--text2);line-height:1.7;margin-bottom:20px">
+        Sebelum reset, coba dulu beberapa kemungkinan PIN yang kamu ingat. Kalau benar-benar tidak ingat sama sekali dan kamu siap kehilangan data, lanjutkan reset.
+      </p>
+      <div class="btn-row">
+        <button class="btn btn-danger" id="confirmResetBtn">Saya Mengerti, Lanjutkan Reset</button>
+        <a href="index.html" class="btn btn-ghost">← Coba PIN Lagi</a>
+      </div>
+    </div>
+
+    <div id="resetStep2" style="display:none">
+      <div class="alert alert-red" style="margin-bottom:20px">
+        Klik <b>Hapus Semua Data & Reset PIN</b> untuk menghapus semua data terenkripsi dan memulai dari awal dengan PIN baru.
+      </div>
+      <div class="btn-row" style="margin-bottom:20px">
+        <button class="btn btn-danger btn-full" id="doHardResetBtn">🗑 Hapus Semua Data &amp; Reset PIN</button>
+      </div>
+      <div style="font-size:.75rem;color:var(--text3);text-align:center">Tindakan ini tidak bisa dibatalkan.</div>
+    </div>
+
+    <div id="resetStep3" style="display:none">
+      <div class="alert alert-green" style="margin-bottom:20px">✅ Data lama dihapus. Sekarang buat PIN baru kamu.</div>
+
+      <div class="form-label" style="text-align:center;margin-bottom:8px">PIN Baru (6 digit)</div>
+      <div class="pin-dots-row" id="newPinDots">
+        <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+        <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+      <div class="status-msg info" id="newPinMsg">Ketik 6 digit PIN baru kamu</div>
+      <div class="mini-pad" id="newPinPad">
+        <button class="mini-key npin-key" data-val="1">1</button>
+        <button class="mini-key npin-key" data-val="2">2<small>ABC</small></button>
+        <button class="mini-key npin-key" data-val="3">3<small>DEF</small></button>
+        <button class="mini-key npin-key" data-val="4">4<small>GHI</small></button>
+        <button class="mini-key npin-key" data-val="5">5<small>JKL</small></button>
+        <button class="mini-key npin-key" data-val="6">6<small>MNO</small></button>
+        <button class="mini-key npin-key" data-val="7">7<small>PQRS</small></button>
+        <button class="mini-key npin-key" data-val="8">8<small>TUV</small></button>
+        <button class="mini-key npin-key" data-val="9">9<small>WXYZ</small></button>
+        <button class="mini-key empty"></button>
+        <button class="mini-key npin-key" data-val="0">0</button>
+        <button class="mini-key del" id="newPinDel">⌫</button>
+      </div>
+    </div>
+
+    <div id="resetDone" style="display:none">
+      <div class="alert alert-green" style="margin-bottom:20px">🎉 PIN baru berhasil dibuat! Kamu sekarang bisa login ke WalletKu.</div>
+      <a href="index.html" class="btn btn-primary btn-full">→ Kembali ke WalletKu &amp; Login</a>
+    </div>
+  </div>
+
+  <!-- SECTION 4 — INFO FREEBUFF -->
+  <div class="section" style="animation-delay:.24s">
+    <div class="section-eyebrow">WalletKu v3 — Freebuff</div>
+    <div class="section-title">Versi Baru dengan Fitur Lebih Lengkap</div>
+    <div class="section-sub">WalletKu Freebuff hadir dengan keamanan lebih tinggi, fitur lebih banyak, dan sekarang open publik untuk semua orang.</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px">
+        <div style="font-size:.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Security</div>
+        <div style="font-size:.82rem;color:var(--text2);line-height:1.6">Session timeout · PIN lock after fails · Data integrity check · Backup code</div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px">
+        <div style="font-size:.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Features</div>
+        <div style="font-size:.82rem;color:var(--text2);line-height:1.6">CSV export · Global search · Better analytics · More currencies · Import Freebuff JSON</div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px">
+        <div style="font-size:.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Platform</div>
+        <div style="font-size:.82rem;color:var(--text2);line-height:1.6">Open publik · freebuff.com · No server, no tracking, 100% browser-local</div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px">
+        <div style="font-size:.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Privacy</div>
+        <div style="font-size:.82rem;color:var(--text2);line-height:1.6">Data tetap 100% di browser kamu · AES-GCM 256-bit · PBKDF2 200k iterasi</div>
+      </div>
+    </div>
+
+    <a href="https://walletku.freebuff.app/" target="_blank" rel="noopener" class="btn btn-primary btn-full">
+      → Buka WalletKu Freebuff
+    </a>
+  </div>
+
+</main>
+
+<script>
+'use strict';
+
+// ── CRYPTO (same as app.js) ──────────────────────
+const LS_SALT    = 'wk_salt_v2';
+const LS_VERIFY  = 'wk_verify_v2';
+const LS_DATA    = 'wk_data_v2';
+const LS_USER    = 'wk_username_v2';
+const VERIFY_KEY = 'WALLETKU_OK';
+
+const _enc = new TextEncoder(), _dec = new TextDecoder();
+const b64   = b => btoa(String.fromCharCode(...new Uint8Array(b)));
+const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0)).buffer;
+
+async function deriveKey(pin, salt) {
+  const km = await crypto.subtle.importKey('raw', _enc.encode(pin), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name:'PBKDF2', salt, iterations:200000, hash:'SHA-256' }, km, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
+}
+async function encrypt(key, text) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, _enc.encode(text));
+  return b64(iv) + '.' + b64(ct);
+}
+async function decrypt(key, cipher) {
+  const [iv64, ct64] = cipher.split('.');
+  const pt = await crypto.subtle.decrypt({ name:'AES-GCM', iv: new Uint8Array(unb64(iv64)) }, key, unb64(ct64));
+  return _dec.decode(pt);
+}
+
+// ── TOAST ──────────────────────────────────────
+function showToast(msg, dur = 3000) {
+  const el = document.getElementById('toastEl');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), dur);
+}
+
+// ── COUNTDOWN ──────────────────────────────────
+function initCountdown() {
+  const el = document.getElementById('mainCountdown');
+  // 26 Sep 2026 21:00 WIB = UTC+7 = 14:00 UTC
+  const TARGET = new Date('2026-09-26T14:00:00Z');
+
+  function tick() {
+    const diff = TARGET - Date.now();
+    if (diff <= 0) {
+      el.textContent = '🔴 Layanan Telah Berakhir';
+      el.style.background = 'rgba(248,113,113,0.1)';
+      el.style.borderColor = 'rgba(248,113,113,0.3)';
+      el.style.color = 'var(--red)';
+      return;
+    }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    const pad = n => String(n).padStart(2,'0');
+    el.textContent = d > 0
+      ? `⏳ ${d} hari ${pad(h)}j ${pad(m)}m ${pad(s)}d`
+      : `⏳ ${pad(h)}:${pad(m)}:${pad(s)}`;
+    if (d < 3) {
+      el.style.background = 'rgba(248,113,113,0.1)';
+      el.style.borderColor = 'rgba(248,113,113,0.3)';
+      el.style.color = 'var(--red)';
+    }
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
+// ── MINI NUMPAD HELPER ──────────────────────────
+function makePad(keys, delBtn, dotEls, statusEl, onComplete, tone = true) {
+  let buf = '';
+
+  function updateDots() {
+    dotEls.forEach((d, i) => {
+      d.className = 'pin-dot' + (i < buf.length ? ' filled' : '');
+    });
+  }
+
+  function errorDots() {
+    dotEls.forEach(d => d.className = 'pin-dot err');
+    setTimeout(() => { buf = ''; updateDots(); if (statusEl) statusEl.textContent = ''; }, 800);
+  }
+
+  keys.forEach(btn => btn.addEventListener('click', () => {
+    if (buf.length >= 6) return;
+    buf += btn.dataset.val;
+    updateDots();
+    if (buf.length === 6) setTimeout(() => onComplete(buf, errorDots, () => { buf = ''; updateDots(); }), 180);
+  }));
+
+  delBtn.addEventListener('click', () => {
+    if (buf.length) { buf = buf.slice(0,-1); updateDots(); }
+  });
+
+  // keyboard
+  function keyHandler(e) {
+    if (e.key >= '0' && e.key <= '9') {
+      if (buf.length < 6) { buf += e.key; updateDots(); if (buf.length === 6) setTimeout(() => onComplete(buf, errorDots, () => { buf=''; updateDots(); }), 180); }
+    } else if (e.key === 'Backspace') {
+      if (buf.length) { buf = buf.slice(0,-1); updateDots(); }
+    }
+  }
+  document.addEventListener('keydown', keyHandler);
+  return () => document.removeEventListener('keydown', keyHandler);
+}
+
+// ── EXPORT SECTION ──────────────────────────────
+let exportCryptoKey = null;
+let exportState = null;
+
+function initExportPin() {
+  const dots    = [...document.querySelectorAll('#exportDots .pin-dot')];
+  const keys    = [...document.querySelectorAll('.mini-key[data-val]:not(.npin-key)')];
+  const delBtn  = document.getElementById('exportPinDel');
+  const statusEl = document.getElementById('exportPinMsg');
+
+  const hasSalt   = !!localStorage.getItem(LS_SALT);
+  const hasVerify = !!localStorage.getItem(LS_VERIFY);
+
+  if (!hasSalt || !hasVerify) {
+    document.getElementById('exportPinSection').innerHTML =
+      '<div class="alert alert-red">Tidak ada data WalletKu di browser ini. Tidak ada yang bisa diekspor.</div>';
+    return;
+  }
+
+  makePad(keys, delBtn, dots, statusEl, async (pin, onError, onClear) => {
+    statusEl.textContent = 'Memverifikasi…';
+    statusEl.className = 'status-msg info';
+    try {
+      const saltBuf = new Uint8Array(unb64(localStorage.getItem(LS_SALT)));
+      const key = await deriveKey(pin, saltBuf);
+      const pl  = await decrypt(key, localStorage.getItem(LS_VERIFY));
+      if (pl !== VERIFY_KEY && pl !== 'WALLETKU_OK') throw new Error();
+      exportCryptoKey = key;
+      const raw = localStorage.getItem(LS_DATA);
+      if (raw) exportState = JSON.parse(await decrypt(key, raw));
+      else exportState = { wallets:[], transactions:[], goals:[], wishlist:[], budgets:[], recurring:[], notes:[], settings:{} };
+      // Show unlocked UI
+      dots.forEach(d => d.className = 'pin-dot ok');
+      statusEl.textContent = 'PIN benar ✓';
+      statusEl.className = 'status-msg ok';
+      setTimeout(() => {
+        document.getElementById('exportPinSection').style.display = 'none';
+        document.getElementById('exportUnlocked').style.display = 'block';
+      }, 600);
+    } catch(e) {
+      statusEl.textContent = 'PIN salah — coba lagi';
+      statusEl.className = 'status-msg err';
+      onError();
+      setTimeout(() => { statusEl.textContent = '6 digit PIN WalletKu kamu'; statusEl.className = 'status-msg info'; }, 1000);
+    }
+  });
+}
+
+function buildFreebuffJSON(state) {
+  // Map data from GitHub WalletKu format to Freebuff-compatible format
+  const username = localStorage.getItem(LS_USER) || 'user';
+  return {
+    version: '3.0.0',
+    exportedAt: new Date().toISOString(),
+    appName: 'WalletKu',
+    platform: 'freebuff',
+    sourceVersion: 'github-edition-v1.4.1',
+    exportedBy: username,
+    data: {
+      wallets: (state.wallets || []).map(w => ({
+        id: w.id,
+        name: w.name || '',
+        icon: w.icon || '💰',
+        color: w.color || '#c9a84c',
+        type: (w.type || 'Other').toLowerCase().replace(/\s+/g,'_'),
+        currency: w.currency || state.settings?.currency || 'IDR',
+        balance: w.balance || 0,
+        createdAt: w.createdAt || new Date().toISOString()
+      })),
+      transactions: (state.transactions || []).map(t => ({
+        id: t.id,
+        type: t.type || 'expense',
+        walletId: t.walletId || '',
+        amount: t.amount || 0,
+        category: t.category || 'Lainnya',
+        currency: t.currency || state.settings?.currency || 'IDR',
+        note: t.note || '',
+        tags: Array.isArray(t.tags) ? t.tags : [],
+        date: t.date ? t.date.slice(0,10) : new Date().toISOString().slice(0,10),
+        createdAt: t.createdAt || new Date().toISOString()
+      })),
+      goals: (state.goals || []).map(g => ({
+        id: g.id,
+        name: g.name || '',
+        icon: g.icon || '🎯',
+        target: g.target || 0,
+        amount: g.amount || 0,
+        deadline: g.deadline || null,
+        note: g.note || '',
+        createdAt: g.createdAt || new Date().toISOString()
+      })),
+      budgets: (state.budgets || []).map(b => ({
+        id: b.id,
+        category: b.category || '',
+        limit: b.limit || 0,
+        notified90: b.notified90 || false,
+        notifiedOver: b.notifiedOver || false
+      })),
+      recurring: (state.recurring || []).map(r => ({
+        id: r.id,
+        name: r.name || '',
+        type: r.type || 'expense',
+        walletId: r.walletId || '',
+        amount: r.amount || 0,
+        category: r.category || 'Lainnya',
+        currency: state.settings?.currency || 'IDR',
+        freq: r.freq || 'monthly',
+        startDate: r.startDate || new Date().toISOString().slice(0,10),
+        active: r.active !== false,
+        lastRun: r.lastRun || null,
+        createdAt: r.createdAt || new Date().toISOString()
+      })),
+      wishlist: (state.wishlist || []).map(w => ({
+        id: w.id,
+        name: w.name || '',
+        icon: w.icon || '✨',
+        price: w.price || 0,
+        link: w.link || null,
+        note: w.note || '',
+        purchased: w.purchased || false,
+        createdAt: w.createdAt || new Date().toISOString()
+      })),
+      notes: (state.notes || []).map(n => ({
+        id: n.id,
+        title: n.title || '',
+        content: n.content || '',
+        date: n.date ? n.date.slice(0,10) : new Date().toISOString().slice(0,10),
+        createdAt: n.createdAt || new Date().toISOString()
+      })),
+      settings: {
+        currency: state.settings?.currency || 'IDR',
+        createdAt: state.settings?.createdAt || new Date().toISOString(),
+        backupCode: state.settings?.backupCode || null,
+        sessionTimeout: state.settings?.sessionTimeout || 0,
+        pinLockAfter: state.settings?.pinLockAfter || 5,
+        autoLogin: false
+      }
+    }
+  };
+}
+
+function initExportActions() {
+  document.getElementById('doExportBtn').addEventListener('click', () => {
+    if (!exportState) { showToast('Data belum terdekripsi'); return; }
+    const payload = buildFreebuffJSON(exportState);
+    const json    = JSON.stringify(payload, null, 2);
+    const blob    = new Blob([json], { type: 'application/json' });
+    const a       = document.createElement('a');
+    a.href        = URL.createObjectURL(blob);
+    a.download    = `WalletKu_Freebuff_Export_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    showToast('✅ File JSON berhasil didownload!');
+  });
+
+  document.getElementById('previewBtn').addEventListener('click', () => {
+    if (!exportState) return;
+    const preview = document.getElementById('exportPreview');
+    if (preview.classList.contains('visible')) {
+      preview.classList.remove('visible');
+      document.getElementById('previewBtn').textContent = '👁 Preview';
+    } else {
+      const payload = buildFreebuffJSON(exportState);
+      const summary = {
+        wallets: payload.data.wallets.length,
+        transactions: payload.data.transactions.length,
+        goals: payload.data.goals.length,
+        budgets: payload.data.budgets.length,
+        recurring: payload.data.recurring.length,
+        wishlist: payload.data.wishlist.length,
+        notes: payload.data.notes.length,
+        exportedAt: payload.exportedAt,
+        version: payload.version
+      };
+      preview.textContent = JSON.stringify(summary, null, 2);
+      preview.classList.add('visible');
+      document.getElementById('previewBtn').textContent = '✕ Tutup Preview';
+    }
+  });
+}
+
+// ── RESET PIN SECTION ───────────────────────────
+let newPinBuf = '', newPinConfirmBuf = '', newPinPhase = 'create';
+let removeKeyHandler = null;
+
+function initResetPin() {
+  document.getElementById('confirmResetBtn').addEventListener('click', () => {
+    document.getElementById('resetStep1').style.display = 'none';
+    document.getElementById('resetStep2').style.display = 'block';
+  });
+
+  document.getElementById('doHardResetBtn').addEventListener('click', () => {
+    // Clear all encrypted data from localStorage
+    localStorage.removeItem(LS_SALT);
+    localStorage.removeItem(LS_VERIFY);
+    localStorage.removeItem(LS_DATA);
+    // Keep username
+    document.getElementById('resetStep2').style.display = 'none';
+    document.getElementById('resetStep3').style.display = 'block';
+    initNewPinPad();
+  });
+}
+
+function initNewPinPad() {
+  const dots   = [...document.querySelectorAll('#newPinDots .pin-dot')];
+  const keys   = [...document.querySelectorAll('.npin-key')];
+  const delBtn = document.getElementById('newPinDel');
+  const msgEl  = document.getElementById('newPinMsg');
+
+  function updateDots(buf) {
+    dots.forEach((d,i) => d.className = 'pin-dot' + (i < buf.length ? ' filled' : ''));
+  }
+
+  async function handlePin(pin, onError, onClear) {
+    if (newPinPhase === 'create') {
+      newPinConfirmBuf = pin;
+      newPinPhase = 'confirm';
+      newPinBuf = '';
+      updateDots('');
+      msgEl.textContent = 'Konfirmasi ulang PIN baru kamu';
+      msgEl.className = 'status-msg info';
+      onClear();
+    } else {
+      // Confirm phase
+      if (pin !== newPinConfirmBuf) {
+        msgEl.textContent = 'PIN tidak cocok — coba lagi dari awal';
+        msgEl.className = 'status-msg err';
+        onError();
+        setTimeout(() => {
+          newPinPhase = 'create';
+          newPinConfirmBuf = '';
+          msgEl.textContent = 'PIN Baru (6 digit)';
+          msgEl.className = 'status-msg info';
+        }, 1000);
+        return;
+      }
+      // Setup PIN baru
+      msgEl.textContent = 'Menyimpan PIN baru…';
+      msgEl.className = 'status-msg info';
+      try {
+        const salt = crypto.getRandomValues(new Uint8Array(32));
+        localStorage.setItem(LS_SALT, b64(salt));
+        const key  = await deriveKey(pin, salt);
+        const iv   = crypto.getRandomValues(new Uint8Array(12));
+        const ct   = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, _enc.encode(VERIFY_KEY));
+        localStorage.setItem(LS_VERIFY, b64(iv) + '.' + b64(ct));
+        // Save empty state
+        const emptyState = { wallets:[], transactions:[], goals:[], wishlist:[], budgets:[], recurring:[], notes:[], settings:{ currency:'IDR', createdAt: new Date().toISOString() } };
+        const stateIv = crypto.getRandomValues(new Uint8Array(12));
+        const stateCt = await crypto.subtle.encrypt({ name:'AES-GCM', iv:stateIv }, key, _enc.encode(JSON.stringify(emptyState)));
+        localStorage.setItem(LS_DATA, b64(stateIv) + '.' + b64(stateCt));
+        dots.forEach(d => d.className = 'pin-dot ok');
+        msgEl.textContent = 'PIN baru tersimpan ✓';
+        msgEl.className = 'status-msg ok';
+        if (removeKeyHandler) removeKeyHandler();
+        setTimeout(() => {
+          document.getElementById('resetStep3').style.display = 'none';
+          document.getElementById('resetDone').style.display = 'block';
+        }, 800);
+      } catch(e) {
+        msgEl.textContent = 'Gagal menyimpan PIN — coba refresh';
+        msgEl.className = 'status-msg err';
+      }
+    }
+  }
+
+  removeKeyHandler = makePad(keys, delBtn, dots, msgEl, handlePin);
+}
+
+// ── INIT ──────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  initCountdown();
+  initExportPin();
+  initExportActions();
+  initResetPin();
+});
+</script>
+</body>
+</html>
