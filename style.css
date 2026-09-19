@@ -1078,6 +1078,15 @@ body:hover .cursor-glow { opacity: 0.4; }
 @keyframes dotShake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 @keyframes shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-7px); } 40% { transform: translateX(7px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(5px); } }
 
+
+/* ── LUPA PIN LINK ── */
+.pin-forgot-link {
+  font-size: .75rem; color: var(--text-tertiary); text-decoration: none;
+  margin-top: calc(var(--sp-2) * -1);
+  transition: color var(--dur-fast);
+  letter-spacing: -.01em;
+}
+.pin-forgot-link:hover { color: var(--accent); text-shadow: 0 0 10px var(--accent-glow); }
 /* ═══════════════════════════════════════════════
    SHUTDOWN NOTICE BANNER
 ═══════════════════════════════════════════════ */
