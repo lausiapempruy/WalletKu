@@ -1,6 +1,35 @@
 # WalletKu Changelogs
 
-## v1.4.1 — 29 Juli 2026
+## v1.5.0 — 19 September 2026
+
+### Pindah ke Freebuff — Open Publik
+- WalletKu resmi pindah dari GitHub ke freebuff.com setelah 5 bulan (April–September 2026) di GitHub Pages
+- Website resmi **open publik** — siapa pun bisa menggunakan WalletKu tanpa batasan akses
+- Versi Freebuff membawa label **v3** dengan fitur keamanan dan kelengkapan yang jauh lebih tinggi
+- Branding resmi: WalletKu™ — Private Finance Tracker di https://walletku.freebuff.app/
+
+### Halaman Recovery Data Baru (recovery-data.html)
+- File recovery-data.html tersedia sebagai halaman pemulihan mandiri
+- Ekspor data ke format JSON Freebuff-compatible — semua wallet, transaksi, goals, budget, recurring, wishlist, dan notes dikemas siap diimport ke versi Freebuff
+- Data di-decrypt via PIN sebelum diekspor, lalu disusun ke skema Freebuff v3.0.0
+- Preview ringkasan data sebelum download
+- Link 'Lupa PIN? Pulihkan akses' muncul langsung di bawah PIN screen
+
+### Sistem Lupa PIN & Reset
+- Alur reset PIN lengkap di halaman recovery: konfirmasi → hard reset → buat PIN baru → login kembali
+- Reset PIN menghapus semua encrypted data (by design — key enkripsi lama hilang bersama PIN lama)
+- Konfirmasi ulang PIN baru sebelum disimpan
+
+### Info Penutupan Layanan
+- Layanan WalletKu GitHub Edition berakhir 26 September 2026, 21:00 WIB
+- Repository GitHub dihapus permanen 1 Oktober 2026
+- Shutdown banner dengan countdown realtime di semua halaman
+- Link ke recovery-data.html ada di banner dan di bawah PIN screen
+
+---
+
+
+## v1.4.1 — 26 Juli 2026
 
 ### 🐛 Bug Fixes & Updates
 - **CRITICAL FIX**: PIN selalu incorrect padahal PIN benar — disebabkan `VERIFY_KEY` berubah antar versi (`'WALLETKU_OK_V23'` vs `'WALLETKU_OK'`); dikembalikan ke nilai asal agar data lama tetap bisa dibuka
