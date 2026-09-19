@@ -1572,7 +1572,7 @@ function initShutdownBanner() {
   }
 
   // Target: 21 Sep 2026 21:00 WIB (UTC+7 = 14:00 UTC)
-  const TARGET = new Date('2026-09-21T14:00:00Z');
+  const TARGET = new Date('2026-09-26T14:00:00Z'); // 26 Sep 2026 21:00 WIB
 
   function updateCountdown() {
     const now  = new Date();
